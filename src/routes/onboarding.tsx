@@ -29,7 +29,7 @@ function Onboarding() {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState(AVATARS[0]);
+  const [avatar, setAvatar] = useState<string>(AVATARS[0] ?? "🦊");
   const [water, setWater] = useState(2000);
   const [sleep, setSleep] = useState(8);
 
