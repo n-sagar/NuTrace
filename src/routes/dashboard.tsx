@@ -10,6 +10,8 @@ export const Route = createFileRoute("/dashboard")({
       { name: "description", content: "Your daily hydration and sleep summary." },
       { property: "og:title", content: "Dashboard — NuTrace" },
       { property: "og:description", content: "Your daily hydration and sleep summary." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Dashboard,

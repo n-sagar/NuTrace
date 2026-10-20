@@ -21,6 +21,7 @@
 @theme inline {
   --color-water: var(--water);
   --color-sleep: var(--sleep);
+  --color-energy: var(--energy);
   --font-display: "DM Serif Display", serif;
   --font-mono: "JetBrains Mono", monospace;
   --font-sans: "DM Sans", sans-serif;
@@ -89,6 +90,10 @@
   --ring: oklch(0.72 0.15 245);
   --water: oklch(0.7 0.16 245);
   --sleep: oklch(0.62 0.17 285);
+  --energy: oklch(0.82 0.13 90);
+  --welcome-ambient: radial-gradient(ellipse at 20% 20%, color-mix(in oklab, var(--water) 5%, transparent), transparent 65%), radial-gradient(ellipse at 90% 80%, color-mix(in oklab, var(--sleep) 5%, transparent), transparent 65%);
+  --shadow-logo: 0 0 45px color-mix(in oklab, var(--water) 9%, transparent);
+  --shadow-node: 0 0 18px color-mix(in oklab, currentColor 12%, transparent);
   --gradient-cta: linear-gradient(90deg, oklch(0.78 0.14 230), oklch(0.7 0.14 275));
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -148,4 +153,24 @@
   background: var(--gradient-cta);
   color: var(--primary-foreground);
   box-shadow: 0 8px 30px -8px color-mix(in oklab, var(--water) 60%, transparent);
+}
+
+@utility welcome-background {
+  background-image: var(--welcome-ambient);
+}
+
+@utility logo-core {
+  box-shadow: var(--shadow-logo);
+}
+
+@utility orbital-node {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-node);
+  will-change: transform;
 }
