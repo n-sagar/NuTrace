@@ -21,7 +21,7 @@ function Landing() {
   const reducedMotion = useReducedMotion();
   const orbit = (direction: number, duration: number) => ({
     animate: { rotate: reducedMotion ? 0 : direction * 360 },
-    transition: { duration, repeat: Infinity, ease: "linear" as const },
+    transition: { duration: reducedMotion ? 0 : duration, repeat: reducedMotion ? 0 : Infinity, ease: "linear" as const },
   });
   return (
     <main className="welcome-background flex min-h-svh flex-col items-center justify-center px-6 py-12">
@@ -54,7 +54,7 @@ function Landing() {
           </div>
         </div>
         <h2 className="mt-8 max-w-xs text-center text-xl font-medium leading-relaxed">Track your daily hydration and sleep rhythm effortlessly.</h2>
-        <motion.div className="mt-8 w-full" whileHover={reducedMotion ? undefined : { scale: 1.025 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }} transition={{ duration: 0.2 }}>
+        <motion.div className="mt-8 w-full" whileHover={{ scale: reducedMotion ? 1 : 1.025 }} whileTap={{ scale: reducedMotion ? 1 : 0.98 }} transition={{ duration: 0.2 }}>
           <Button asChild className="btn-gradient h-14 w-full rounded-2xl text-base font-semibold">
             <Link to="/onboarding">Get Started <ArrowRight aria-hidden="true" /></Link>
           </Button>
