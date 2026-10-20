@@ -11,6 +11,8 @@ export const Route = createFileRoute("/onboarding")({
       { name: "description", content: "Personalize your profile and daily water and sleep goals." },
       { property: "og:title", content: "Set up NuTrace" },
       { property: "og:description", content: "Personalize your profile and daily water and sleep goals." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Onboarding,
