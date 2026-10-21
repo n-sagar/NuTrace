@@ -11,6 +11,9 @@ export type DailyState = {
 
 const KEY = "nutrace.daily";
 
+/** Hard cap on daily water logging (6.0L) */
+export const MAX_WATER_ML = 6000;
+
 export const SYNCED_SLEEP: { hours: number; minutes: number; stages: SleepStages } = {
   hours: 7,
   minutes: 45,
@@ -62,6 +65,27 @@ export function playClick() {
     osc.connect(gain).connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.09);
+    osc.onended = () => void ctx.close();
+  } catch {
+    /* audio unavailable */
+  }
+}
+
+/** Crisp organic "pop" for tracker buttons */
+export function playPop() {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(520, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.09);
+    gain.gain.setValueAtTime(0.22, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.11);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.12);
     osc.onended = () => void ctx.close();
   } catch {
     /* audio unavailable */

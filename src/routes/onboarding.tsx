@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Droplet, Moon } from "lucide-react";
-import { AVATARS, WATER_GOALS, SLEEP_GOALS, savePrefs } from "@/lib/prefs";
+import { AVATARS, WATER_GOALS, SLEEP_GOALS, DEFAULT_EMAIL, savePrefs } from "@/lib/prefs";
+import { playClick } from "@/lib/daily";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/onboarding")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function Pill({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep" }) {
   return (
-    <button type="button" onClick={onClick} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition",
+    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition",
       active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-border bg-card text-muted-foreground hover:text-foreground")}>
       {children}
     </button>
@@ -36,7 +37,8 @@ function Onboarding() {
   const [sleep, setSleep] = useState(8);
 
   const complete = () => {
-    savePrefs({ name: name.trim(), avatar, waterGoal: water, sleepGoal: sleep });
+    playClick();
+    savePrefs({ name: name.trim(), avatar, waterGoal: water, sleepGoal: sleep, email: DEFAULT_EMAIL });
     nav({ to: "/dashboard" });
   };
 
@@ -67,7 +69,7 @@ function Onboarding() {
           <p className="mt-8 text-sm text-muted-foreground">Pick an avatar</p>
           <div className="mt-3 grid grid-cols-6 gap-2">
             {AVATARS.map((a) => (
-              <button key={a} onClick={() => setAvatar(a)} aria-label={`Avatar ${a}`}
+              <button key={a} onClick={() => { playClick(); setAvatar(a); }} aria-label={`Avatar ${a}`}
                 className={cn("aspect-square rounded-2xl border text-2xl transition", avatar === a ? "border-water bg-water/15" : "border-border bg-card")}>{a}</button>
             ))}
           </div>
@@ -94,7 +96,7 @@ function Onboarding() {
       <footer className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">You can change this later</span>
         {step === 1 ? (
-          <button disabled={!name.trim()} onClick={() => setStep(2)} className="btn-gradient rounded-2xl px-10 py-3 text-lg font-semibold disabled:opacity-40">Next</button>
+          <button disabled={!name.trim()} onClick={() => { playClick(); setStep(2); }} className="btn-gradient rounded-2xl px-10 py-3 text-lg font-semibold disabled:opacity-40">Next</button>
         ) : (
           <button onClick={complete} className="btn-gradient rounded-2xl px-6 py-3 text-lg font-semibold">Complete Setup</button>
         )}
