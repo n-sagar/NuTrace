@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Droplet, Moon, Sparkles, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { playClick } from "@/lib/daily";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -55,7 +56,7 @@ function Landing() {
         </div>
         <h2 className="mt-8 max-w-xs text-center text-xl font-medium leading-relaxed">Track your daily hydration and sleep rhythm effortlessly.</h2>
         <motion.div className="mt-8 w-full" whileHover={{ scale: reducedMotion ? 1 : 1.025 }} whileTap={{ scale: reducedMotion ? 1 : 0.98 }} transition={{ duration: 0.2 }}>
-          <Button asChild className="btn-gradient h-14 w-full rounded-2xl text-base font-semibold">
+          <Button asChild onClick={() => playClick()} className="btn-gradient h-14 w-full rounded-2xl text-base font-semibold">
             <Link to="/onboarding">Get Started <ArrowRight aria-hidden="true" /></Link>
           </Button>
         </motion.div>
