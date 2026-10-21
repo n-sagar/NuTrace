@@ -93,7 +93,7 @@ function Onboarding() {
         </section>
       )}
 
-      <footer className="flex items-center justify-between">
+      <footer className="mt-10 flex items-center justify-between gap-4 pt-2">
         <span className="text-xs text-muted-foreground">You can change this later</span>
         {step === 1 ? (
           <button disabled={!name.trim()} onClick={() => { playClick(); setStep(2); }} className="btn-gradient rounded-2xl px-10 py-3 text-lg font-semibold disabled:opacity-40">Next</button>
