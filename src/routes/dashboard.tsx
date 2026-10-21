@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
-import { loadPrefs, type Prefs } from "@/lib/prefs";
-import { loadDaily, saveDaily, timeToMidnight, playClick, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
+import { toast } from "sonner";
+import { loadPrefs, savePrefs, clearSession, DEFAULT_EMAIL, type Prefs } from "@/lib/prefs";
+import { loadDaily, saveDaily, timeToMidnight, playPop, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
+import { ProfileModal } from "@/components/ProfileModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
@@ -33,12 +35,14 @@ const STAGE_META = [
 ] as const;
 
 function Dashboard() {
+  const nav = useNavigate();
   const [p, setP] = useState<Prefs | null>(null);
   const [d, setD] = useState<DailyState | null>(null);
   const [resetIn, setResetIn] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    setP(loadPrefs() ?? { name: "there", avatar: "🌙", waterGoal: 2000, sleepGoal: 8 });
+    setP(loadPrefs() ?? { name: "there", avatar: "🌙", waterGoal: 2000, sleepGoal: 8, email: DEFAULT_EMAIL });
     setD(loadDaily());
     setResetIn(timeToMidnight());
     const t = setInterval(() => {
@@ -54,13 +58,33 @@ function Dashboard() {
   if (!p || !d) return null;
 
   const update = (patch: Partial<DailyState>) => {
-    playClick();
+    playPop();
     setD((cur) => {
       if (!cur) return cur;
       const next = { ...cur, ...patch };
       saveDaily(next);
       return next;
     });
+  };
+
+  const addWater = (amount: number) => {
+    if (!d || d.waterMl >= MAX_WATER_ML) {
+      toast("Maximum daily logging limit reached (6.0L).");
+      return;
+    }
+    const next = Math.min(d.waterMl + amount, MAX_WATER_ML);
+    if (next === MAX_WATER_ML) toast("Maximum daily logging limit reached (6.0L).");
+    update({ waterMl: next });
+  };
+
+  const saveGoals = (next: Prefs) => {
+    savePrefs(next);
+    setP(next);
+  };
+
+  const logout = () => {
+    clearSession();
+    nav({ to: "/" });
   };
 
   const pct = Math.min(d.waterMl / p.waterGoal, 1);
@@ -76,7 +100,7 @@ function Dashboard() {
     <main className="mx-auto max-w-md space-y-4 px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="font-mono text-xl">NuTrace</h1>
-        <span className="text-2xl">{p.avatar}</span>
+        <button aria-label="Open account profile" onClick={() => setProfileOpen(true)} className="rounded-full text-2xl transition hover:scale-110">{p.avatar}</button>
       </div>
       <p className="text-sm text-muted-foreground">Hey {p.name}, hope you're doing well</p>
 
@@ -92,7 +116,12 @@ function Dashboard() {
 
       {/* Water tracker */}
       <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="text-muted-foreground">Water</div>
+        <div className="flex items-center justify-between">
+          <div className="text-muted-foreground">Water</div>
+          {d.waterMl >= p.waterGoal && (
+            <span className="rounded-full border border-water bg-water/15 px-3 py-1 text-xs font-semibold text-water">Goal Met! 🎉</span>
+          )}
+        </div>
         <div className="relative mx-auto my-4 grid size-52 place-items-center">
           <svg viewBox="0 0 200 200" className="absolute inset-0 -rotate-90">
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border)" strokeWidth="14" />
@@ -102,9 +131,9 @@ function Dashboard() {
         </div>
         <div className="flex items-center justify-center gap-3">
           <button aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) })} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"><Minus size={16} /></button>
-          <button onClick={() => update({ waterMl: d.waterMl + 250 })} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25">+250ml</button>
-          <button onClick={() => update({ waterMl: d.waterMl + 500 })} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25">+500ml</button>
-          <button aria-label="Add 250ml" onClick={() => update({ waterMl: d.waterMl + 250 })} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"><Plus size={16} /></button>
+          <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</button>
+          <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</button>
+          <button aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></button>
         </div>
       </div>
 
@@ -179,6 +208,9 @@ function Dashboard() {
           </div>
         )}
       </div>
+      {profileOpen && (
+        <ProfileModal prefs={p} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
+      )}
     </main>
   );
 }
