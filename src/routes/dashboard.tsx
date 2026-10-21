@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { loadPrefs, savePrefs, clearSession, DEFAULT_EMAIL, type Prefs } from "@/lib/prefs";
-import { loadDaily, saveDaily, timeToMidnight, playPop, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
+import { loadDaily, saveDaily, timeToMidnight, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
 import { ProfileModal } from "@/components/ProfileModal";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard")({
@@ -57,8 +58,8 @@ function Dashboard() {
 
   if (!p || !d) return null;
 
-  const update = (patch: Partial<DailyState>) => {
-    playPop();
+  const update = (patch: Partial<DailyState>, sound = playPop) => {
+    sound();
     setD((cur) => {
       if (!cur) return cur;
       const next = { ...cur, ...patch };
@@ -74,7 +75,7 @@ function Dashboard() {
     }
     const next = Math.min(d.waterMl + amount, MAX_WATER_ML);
     if (next === MAX_WATER_ML) toast("Maximum daily logging limit reached (6.0L).");
-    update({ waterMl: next });
+    update({ waterMl: next }, playDroplet);
   };
 
   const saveGoals = (next: Prefs) => {
@@ -90,6 +91,8 @@ function Dashboard() {
   const pct = Math.min(d.waterMl / p.waterGoal, 1);
   const C = 2 * Math.PI * 80;
   const synced = d.syncOn;
+  const sleepHours = synced ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : d.sleepHours ?? 0;
+  const sleepProgress = Math.min(100, sleepHours / p.sleepGoal * 100);
   const sleepDisplay = synced
     ? `${SYNCED_SLEEP.hours}h ${SYNCED_SLEEP.minutes}m`
     : d.sleepHours != null
@@ -130,7 +133,7 @@ function Dashboard() {
           <div className="text-center"><div className="text-4xl">{(d.waterMl / 1000).toFixed(2)}L</div><div className="text-sm text-muted-foreground">/ {p.waterGoal / 1000}L Goal</div></div>
         </div>
         <div className="flex items-center justify-center gap-3">
-          <button aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) })} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"><Minus size={16} /></button>
+          <button aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"><Minus size={16} /></button>
           <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</button>
           <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</button>
           <button aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></button>
@@ -161,6 +164,14 @@ function Dashboard() {
           <div className="text-sm text-muted-foreground">
             {synced ? "logged from Apple Watch" : d.sleepHours != null ? "logged manually" : "no sleep logged yet"}
           </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{Math.round(sleepProgress)}% of goal</span>
+            <span>{p.sleepGoal}h goal</span>
+          </div>
+          <Progress aria-label="Sleep goal progress" value={sleepProgress} className="bg-sleep/15 [&>div]:bg-sleep" />
         </div>
 
         {synced ? (
