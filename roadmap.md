@@ -1,0 +1,3 @@
+- [ ] Soften water tracking audio without changing navigation/settings sounds.
+- [ ] Verify saved profile values and immediate water/sleep target updates.
+- [ ] Run focused tests and check the dashboard flow.

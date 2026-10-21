@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Use Framer Motion for welcome-screen orbit and CTA transforms, respecting reduced-motion preferences; keep visual values in global semantic CSS tokens.
+- Keep dashboard targets derived from the same React preferences state saved through the shared preferences helper; this ensures profile edits update all trackers immediately without duplicating goal state.

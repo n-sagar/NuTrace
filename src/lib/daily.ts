@@ -71,6 +71,27 @@ export function playClick() {
   }
 }
 
+/** Warm, muted droplet tap for water logging. */
+export function playDroplet() {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(260, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.035, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.06);
+    osc.onended = () => void ctx.close();
+  } catch {
+    /* audio unavailable */
+  }
+}
+
 /** Crisp organic "pop" for tracker buttons */
 export function playPop() {
   try {
