@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { loadPrefs, savePrefs, clearSession, DEFAULT_EMAIL, type Prefs } from "@/lib/prefs";
+import { loadPrefs, savePrefs, clearSession, defaultPrefs, subscribePrefs, type Prefs } from "@/lib/prefs";
 import { loadDaily, saveDaily, timeToMidnight, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
 import { ProfileModal } from "@/components/ProfileModal";
 import { Progress } from "@/components/ui/progress";
@@ -43,9 +43,21 @@ function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    setP(loadPrefs() ?? { name: "there", avatar: "🌙", waterGoal: 2000, sleepGoal: 8, email: DEFAULT_EMAIL });
+    setP(loadPrefs() ?? defaultPrefs());
     setD(loadDaily());
     setResetIn(timeToMidnight());
+    const unsubscribe = subscribePrefs((prefs) => {
+      setP(prefs ?? defaultPrefs());
+      if (!prefs) {
+        setProfileOpen(false);
+        setD(loadDaily());
+      }
+    });
+    const onStorage = (event: StorageEvent) => {
+      if (event.storageArea && event.storageArea !== window.localStorage) return;
+      if (event.key === "nutrace.daily" || event.key === null) setD(loadDaily());
+    };
+    window.addEventListener("storage", onStorage);
     const t = setInterval(() => {
       setResetIn(timeToMidnight());
       setD((cur) => {
@@ -53,7 +65,11 @@ function Dashboard() {
         return cur && fresh.date !== cur.date ? fresh : cur;
       });
     }, 30000);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      unsubscribe();
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   if (!p || !d) return null;

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { loadPrefs, savePrefs, clampWaterGoal, clampSleepGoal } from "@/lib/prefs";
+import { loadPrefs, savePrefs, clampWaterGoal, clampSleepGoal, defaultPrefs, clearSession, subscribePrefs } from "@/lib/prefs";
 import { loadDaily, saveDaily, playClick, playDroplet } from "@/lib/daily";
 
 beforeEach(() => {
@@ -99,5 +99,74 @@ describe("Mid-day goal changes", () => {
     savePrefs({ name: "Sagar", avatar: "🦊", email: "sagar@example.com", waterGoal: 2500, sleepGoal: 8 });
     expect(loadDaily().waterMl).toBe(1750);
     expect(loadPrefs()?.waterGoal).toBe(2500);
+  });
+});
+
+describe("Cross-tab preferences and fallbacks", () => {
+  const prefs = { name: "Sagar", avatar: "🦊", email: "sagar@example.com", waterGoal: 2650, sleepGoal: 8.5 };
+  const storageEvent = (key: string | null) => window.dispatchEvent(new StorageEvent("storage", { key, storageArea: localStorage }));
+
+  it("round-trips an exact 2650ml custom water goal", () => {
+    savePrefs(prefs);
+    expect(loadPrefs()?.waterGoal).toBe(2650);
+  });
+
+  it("round-trips an exact 8.5h custom sleep goal", () => {
+    savePrefs(prefs);
+    expect(loadPrefs()?.sleepGoal).toBe(8.5);
+  });
+
+  it("notifies subscribers of another tab's goal changes without changing logged water", () => {
+    saveDaily({ ...loadDaily(), waterMl: 1750 });
+    const onChange = vi.fn();
+    const unsubscribe = subscribePrefs(onChange);
+    try {
+      localStorage.setItem("nutrace.prefs", JSON.stringify(prefs));
+      storageEvent("nutrace.prefs");
+      expect(onChange).toHaveBeenLastCalledWith(prefs);
+      expect(loadDaily().waterMl).toBe(1750);
+    } finally { unsubscribe(); }
+  });
+
+  it("resets cleared storage to 2000ml water and 8h sleep", () => {
+    savePrefs(prefs);
+    let current = prefs;
+    const unsubscribe = subscribePrefs((p) => { current = p ?? defaultPrefs(); });
+    try {
+      localStorage.clear();
+      storageEvent(null);
+      expect(current.waterGoal).toBe(2000);
+      expect(current.sleepGoal).toBe(8);
+    } finally { unsubscribe(); }
+  });
+
+  it("resets logout to default targets and removes daily logs", () => {
+    savePrefs(prefs);
+    saveDaily({ ...loadDaily(), waterMl: 1750, sleepHours: 8.5 });
+    let current = prefs;
+    const unsubscribe = subscribePrefs((p) => { current = p ?? defaultPrefs(); });
+    try {
+      clearSession();
+      expect(current.waterGoal).toBe(2000);
+      expect(current.sleepGoal).toBe(8);
+      expect(loadDaily()).toMatchObject({ waterMl: 0, sleepHours: null });
+    } finally { unsubscribe(); }
+  });
+
+  it("defaults missing and invalid stored targets safely", () => {
+    localStorage.setItem("nutrace.prefs", JSON.stringify({ waterGoal: "2650", sleepGoal: null }));
+    expect(loadPrefs()).toMatchObject({ waterGoal: 2000, sleepGoal: 8 });
+    localStorage.setItem("nutrace.prefs", "broken json");
+    expect(loadPrefs() ?? defaultPrefs()).toMatchObject({ waterGoal: 2000, sleepGoal: 8 });
+  });
+
+  it("ignores unrelated keys and stops updates after unsubscribing", () => {
+    const onChange = vi.fn();
+    const unsubscribe = subscribePrefs(onChange);
+    storageEvent("unrelated");
+    expect(onChange).not.toHaveBeenCalled();
+    unsubscribe();
+    storageEvent("nutrace.prefs");
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
