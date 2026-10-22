@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { playClick } from "@/lib/daily";
 
 export function CustomGoalRow({ label, unit, value, min, max, step, onApply }: {
@@ -6,6 +6,7 @@ export function CustomGoalRow({ label, unit, value, min, max, step, onApply }: {
   onApply: (v: number) => void;
 }) {
   const [text, setText] = useState(String(value));
+  useEffect(() => { setText(String(value)); }, [value]);
   const apply = () => {
     if (text.trim() === "") return;
     onApply(Number(text));

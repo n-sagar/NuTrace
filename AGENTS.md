@@ -11,3 +11,4 @@
 
 - Use Framer Motion for welcome-screen orbit and CTA transforms, respecting reduced-motion preferences; keep visual values in global semantic CSS tokens.
 - Keep dashboard targets derived from the same React preferences state saved through the shared preferences helper; this ensures profile edits update all trackers immediately without duplicating goal state.
+- Subscribe dashboard preferences through the shared storage/local-event helper, use its default factory for absent preferences, and synchronize daily storage separately so cross-tab edits and session clearing stay consistent.
