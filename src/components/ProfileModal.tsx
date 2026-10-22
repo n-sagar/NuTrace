@@ -76,17 +76,31 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
             <div className="flex items-center gap-2 text-sm"><Droplet size={15} className="text-water" /> Water goal</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {WATER_GOALS.map((w) => (
-                <GoalPill key={w} tone="water" active={prefs.waterGoal === w} onClick={() => onSave({ ...prefs, waterGoal: w })}>{w / 1000}L</GoalPill>
+                <GoalPill key={w} tone="water" active={prefs.waterGoal === w} onClick={() => { setWaterCustom(false); onSave({ ...prefs, waterGoal: w }); }}>{w / 1000}L</GoalPill>
               ))}
+              <GoalPill tone="water" active={waterCustom || !isWaterPreset} onClick={() => setWaterCustom((v) => !v)}>
+                {isWaterPreset ? "Custom" : `Custom: ${prefs.waterGoal / 1000}L`}
+              </GoalPill>
             </div>
+            {waterCustom && (
+              <CustomGoalRow label="Water goal" unit="ml" value={prefs.waterGoal} min={MIN_WATER_GOAL} max={MAX_WATER_GOAL} step={50}
+                onApply={(v) => onSave({ ...prefs, waterGoal: clampWaterGoal(v) })} />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2 text-sm"><Moon size={15} className="text-sleep" /> Sleep goal</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {SLEEP_GOALS.map((s) => (
-                <GoalPill key={s} tone="sleep" active={prefs.sleepGoal === s} onClick={() => onSave({ ...prefs, sleepGoal: s })}>{s}h</GoalPill>
+                <GoalPill key={s} tone="sleep" active={prefs.sleepGoal === s} onClick={() => { setSleepCustom(false); onSave({ ...prefs, sleepGoal: s }); }}>{s}h</GoalPill>
               ))}
+              <GoalPill tone="sleep" active={sleepCustom || !isSleepPreset} onClick={() => setSleepCustom((v) => !v)}>
+                {isSleepPreset ? "Custom" : `Custom: ${prefs.sleepGoal}h`}
+              </GoalPill>
             </div>
+            {sleepCustom && (
+              <CustomGoalRow label="Sleep goal" unit="h" value={prefs.sleepGoal} min={MIN_SLEEP_GOAL} max={MAX_SLEEP_GOAL} step={0.5}
+                onApply={(v) => onSave({ ...prefs, sleepGoal: clampSleepGoal(v) })} />
+            )}
           </div>
         </div>
 
