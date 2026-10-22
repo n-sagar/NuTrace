@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { loadPrefs, savePrefs } from "@/lib/prefs";
-import { playClick, playDroplet } from "@/lib/daily";
+import { loadPrefs, savePrefs, clampWaterGoal, clampSleepGoal } from "@/lib/prefs";
+import { loadDaily, saveDaily, playClick, playDroplet } from "@/lib/daily";
 
 beforeEach(() => {
   localStorage.clear();
@@ -62,5 +62,42 @@ describe("Water audio", () => {
     expect(frequency.value).toBe(880);
     expect(volume.setValueAtTime).toHaveBeenCalledWith(0.08, 10);
     vi.unstubAllGlobals();
+  });
+});
+
+describe("Custom goals", () => {
+  it("accepts a custom 2250ml water goal", () => {
+    expect(clampWaterGoal(2250)).toBe(2250);
+  });
+
+  it("accepts a custom 7.5h sleep goal", () => {
+    expect(clampSleepGoal(7.5)).toBe(7.5);
+  });
+
+  it("clamps water goals to 500–6000ml", () => {
+    expect(clampWaterGoal(100)).toBe(500);
+    expect(clampWaterGoal(9000)).toBe(6000);
+  });
+
+  it("clamps sleep goals to 3–12h in half-hour steps", () => {
+    expect(clampSleepGoal(1)).toBe(3);
+    expect(clampSleepGoal(15)).toBe(12);
+    expect(clampSleepGoal(7.3)).toBe(7.5);
+  });
+
+  it("persists a custom goal so the dashboard reads it back", () => {
+    savePrefs({ name: "Sagar", avatar: "🦊", email: "sagar@example.com", waterGoal: clampWaterGoal(2250), sleepGoal: clampSleepGoal(7.5) });
+    expect(loadPrefs()).toMatchObject({ waterGoal: 2250, sleepGoal: 7.5 });
+  });
+});
+
+describe("Mid-day goal changes", () => {
+  it("keeps logged water untouched when the goal changes", () => {
+    const d = loadDaily();
+    saveDaily({ ...d, waterMl: 1750 });
+    savePrefs({ name: "Sagar", avatar: "🦊", email: "sagar@example.com", waterGoal: 2000, sleepGoal: 8 });
+    savePrefs({ name: "Sagar", avatar: "🦊", email: "sagar@example.com", waterGoal: 2500, sleepGoal: 8 });
+    expect(loadDaily().waterMl).toBe(1750);
+    expect(loadPrefs()?.waterGoal).toBe(2500);
   });
 });
