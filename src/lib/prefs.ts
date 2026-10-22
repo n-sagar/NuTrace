@@ -59,7 +59,7 @@ export function subscribePrefs(onChange: (p: Prefs | null) => void): () => void 
 }
 
 export function clearSession() {
-  try { localStorage.removeItem(KEY); localStorage.removeItem("nutrace.daily"); } catch { /* unavailable */ }
+   try { localStorage.removeItem(KEY); localStorage.removeItem("nutrace.daily"); localStorage.removeItem("nutrace.history"); } catch { /* unavailable */ }
   window.dispatchEvent(new Event(PREFS_CHANGED));
 }
 export function savePrefs(p: Prefs) {
