@@ -20,7 +20,40 @@ function GoalPill({ active, onClick, children, tone }: { active: boolean; onClic
   );
 }
 
+function CustomGoalRow({ label, unit, value, min, max, step, onApply }: {
+  label: string; unit: string; value: number; min: number; max: number; step: number;
+  onApply: (v: number) => void;
+}) {
+  const [text, setText] = useState(String(value));
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <label className="flex flex-1 items-center gap-2 rounded-full border border-border bg-card px-4 focus-within:border-water">
+        <span className="text-xs text-muted-foreground">{label}</span>
+        <input
+          type="number" inputMode="decimal" min={min} max={max} step={step} value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { const v = Number(text); if (text.trim() !== "") onApply(v); } }}
+          className="min-h-11 w-full bg-transparent font-mono text-sm outline-none"
+          aria-label={`Custom ${label} in ${unit}`}
+        />
+        <span className="font-mono text-xs text-muted-foreground">{unit}</span>
+      </label>
+      <button
+        type="button"
+        onClick={() => { playClick(); const v = Number(text); if (text.trim() !== "") onApply(v); }}
+        className="min-h-11 rounded-full border border-water bg-water/15 px-4 font-mono text-sm text-water transition hover:bg-water/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Set
+      </button>
+    </div>
+  );
+}
+
 export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
+  const [waterCustom, setWaterCustom] = useState(false);
+  const [sleepCustom, setSleepCustom] = useState(false);
+  const isWaterPreset = (WATER_GOALS as number[]).includes(prefs.waterGoal);
+  const isSleepPreset = (SLEEP_GOALS as number[]).includes(prefs.sleepGoal);
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-label="Account profile" onClick={onClose}>
       <div className="w-full max-w-md space-y-5 rounded-t-3xl border border-border bg-card p-6 sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
