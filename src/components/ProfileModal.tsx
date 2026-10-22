@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, LogOut, Droplet, Moon } from "lucide-react";
 import { WATER_GOALS, SLEEP_GOALS, clampWaterGoal, clampSleepGoal, MIN_WATER_GOAL, MAX_WATER_GOAL, MIN_SLEEP_GOAL, MAX_SLEEP_GOAL, type Prefs } from "@/lib/prefs";
+import { CustomGoalRow } from "@/components/CustomGoalRow";
 import { playClick } from "@/lib/daily";
 import { cn } from "@/lib/utils";
 
@@ -17,35 +18,6 @@ function GoalPill({ active, onClick, children, tone }: { active: boolean; onClic
       active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-border bg-card text-muted-foreground hover:text-foreground")}>
       {children}
     </button>
-  );
-}
-
-function CustomGoalRow({ label, unit, value, min, max, step, onApply }: {
-  label: string; unit: string; value: number; min: number; max: number; step: number;
-  onApply: (v: number) => void;
-}) {
-  const [text, setText] = useState(String(value));
-  return (
-    <div className="mt-2 flex items-center gap-2">
-      <label className="flex flex-1 items-center gap-2 rounded-full border border-border bg-card px-4 focus-within:border-water">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        <input
-          type="number" inputMode="decimal" min={min} max={max} step={step} value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { const v = Number(text); if (text.trim() !== "") onApply(v); } }}
-          className="min-h-11 w-full bg-transparent font-mono text-sm outline-none"
-          aria-label={`Custom ${label} in ${unit}`}
-        />
-        <span className="font-mono text-xs text-muted-foreground">{unit}</span>
-      </label>
-      <button
-        type="button"
-        onClick={() => { playClick(); const v = Number(text); if (text.trim() !== "") onApply(v); }}
-        className="min-h-11 rounded-full border border-water bg-water/15 px-4 font-mono text-sm text-water transition hover:bg-water/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        Set
-      </button>
-    </div>
   );
 }
 
