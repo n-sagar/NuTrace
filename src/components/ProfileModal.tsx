@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { X, LogOut, Droplet, Moon } from "lucide-react";
-import { WATER_GOALS, SLEEP_GOALS, type Prefs } from "@/lib/prefs";
+import { WATER_GOALS, SLEEP_GOALS, clampWaterGoal, clampSleepGoal, MIN_WATER_GOAL, MAX_WATER_GOAL, MIN_SLEEP_GOAL, MAX_SLEEP_GOAL, type Prefs } from "@/lib/prefs";
 import { playClick } from "@/lib/daily";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ type Props = {
 
 function GoalPill({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep" }) {
   return (
-    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition",
+    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-border bg-card text-muted-foreground hover:text-foreground")}>
       {children}
     </button>
