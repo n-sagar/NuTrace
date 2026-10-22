@@ -1,3 +1,5 @@
 - [x] Soften water tracking audio without changing navigation/settings sounds.
 - [x] Verify saved profile values and immediate water/sleep target updates.
 - [x] Run focused tests and check the dashboard flow.
+- [ ] Synchronize goals across tabs and safely reset cleared sessions to default targets.
+- [ ] Test exact custom goal persistence and verify the two-tab dashboard flow.
