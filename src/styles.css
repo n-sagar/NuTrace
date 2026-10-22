@@ -22,6 +22,7 @@
   --color-water: var(--water);
   --color-sleep: var(--sleep);
   --color-energy: var(--energy);
+  --color-weekly-bar-muted: var(--weekly-bar-muted);
   --font-display: "DM Serif Display", serif;
   --font-mono: "JetBrains Mono", monospace;
   --font-sans: "DM Sans", sans-serif;
@@ -91,6 +92,7 @@
   --water: oklch(0.7 0.16 245);
   --sleep: oklch(0.62 0.17 285);
   --energy: oklch(0.82 0.13 90);
+  --weekly-bar-muted: oklch(0.43 0.035 255);
   --welcome-ambient: radial-gradient(ellipse at 20% 20%, color-mix(in oklab, var(--water) 5%, transparent), transparent 65%), radial-gradient(ellipse at 90% 80%, color-mix(in oklab, var(--sleep) 5%, transparent), transparent 65%);
   --shadow-logo: 0 0 45px color-mix(in oklab, var(--water) 9%, transparent);
   --shadow-node: 0 0 18px color-mix(in oklab, currentColor 12%, transparent);

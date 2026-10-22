@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { loadPrefs, savePrefs, clearSession, defaultPrefs, subscribePrefs, type Prefs } from "@/lib/prefs";
 import { loadDaily, saveDaily, timeToMidnight, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
 import { ProfileModal } from "@/components/ProfileModal";
+import { WeeklyTrends } from "@/components/WeeklyTrends";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -12,9 +13,9 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — NuTrace" },
-      { name: "description", content: "Your daily hydration and sleep summary." },
+      { name: "description", content: "Track daily hydration and sleep, explore seven-day trends, and follow your goal streaks." },
       { property: "og:title", content: "Dashboard — NuTrace" },
-      { property: "og:description", content: "Your daily hydration and sleep summary." },
+      { property: "og:description", content: "Track daily hydration and sleep, explore seven-day trends, and follow your goal streaks." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -235,6 +236,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <WeeklyTrends daily={d} prefs={p} />
       {profileOpen && (
         <ProfileModal prefs={p} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
       )}
