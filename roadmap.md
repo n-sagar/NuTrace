@@ -3,5 +3,5 @@
 - [x] Run focused tests and check the dashboard flow.
 - [x] Synchronize goals across tabs and safely reset cleared sessions to default targets.
 - [x] Test exact custom goal persistence and verify the two-tab dashboard flow.
-- [ ] Add real seven-day history and reactive Water/Sleep charts with averages and goal streaks.
-- [ ] Test weekly persistence, day rollover, target changes, and cross-tab updates; verify the dashboard.
+- [x] Add real seven-day history and reactive Water/Sleep charts with averages and goal streaks.
+- [x] Test weekly persistence, day rollover, target changes, and cross-tab updates; verify the dashboard.
