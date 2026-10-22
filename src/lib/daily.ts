@@ -1,3 +1,5 @@
+import { localDateKey, recordDay, type DaySnapshot } from "@/lib/weekly";
+
 export type SleepQuality = "rested" | "okay" | "tired";
 export type SleepStages = { rem: number; core: number; deep: number; awake: number };
 
@@ -21,7 +23,7 @@ export const SYNCED_SLEEP: { hours: number; minutes: number; stages: SleepStages
 };
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateKey();
 }
 
 function fresh(): DailyState {
@@ -33,6 +35,7 @@ export function loadDaily(): DailyState {
     const r = localStorage.getItem(KEY);
     if (!r) return fresh();
     const d = JSON.parse(r) as DailyState;
+    recordDay(dailySnapshot(d));
     return d.date === todayKey() ? d : { ...fresh(), syncOn: d.syncOn };
   } catch {
     return fresh();
@@ -41,6 +44,11 @@ export function loadDaily(): DailyState {
 
 export function saveDaily(d: DailyState) {
   localStorage.setItem(KEY, JSON.stringify(d));
+  recordDay(dailySnapshot(d));
+}
+
+export function dailySnapshot(d: DailyState): DaySnapshot {
+  return { date: d.date, waterMl: d.waterMl, sleepHours: d.syncOn ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : d.sleepHours };
 }
 
 /** "4h 12m" until next local midnight */
