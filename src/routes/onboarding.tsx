@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Droplet, Moon } from "lucide-react";
-import { AVATARS, WATER_GOALS, SLEEP_GOALS, DEFAULT_EMAIL, savePrefs } from "@/lib/prefs";
+import { AVATARS, WATER_GOALS, SLEEP_GOALS, DEFAULT_EMAIL, savePrefs, clampWaterGoal, clampSleepGoal, MIN_WATER_GOAL, MAX_WATER_GOAL, MIN_SLEEP_GOAL, MAX_SLEEP_GOAL } from "@/lib/prefs";
 import { playClick } from "@/lib/daily";
+import { CustomGoalRow } from "@/components/CustomGoalRow";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/onboarding")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/onboarding")({
 
 function Pill({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep" }) {
   return (
-    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition",
+    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-border bg-card text-muted-foreground hover:text-foreground")}>
       {children}
     </button>
@@ -35,6 +36,8 @@ function Onboarding() {
   const [avatar, setAvatar] = useState<string>(AVATARS[0] ?? "🦊");
   const [water, setWater] = useState(2000);
   const [sleep, setSleep] = useState(8);
+  const [waterCustom, setWaterCustom] = useState(false);
+  const [sleepCustom, setSleepCustom] = useState(false);
 
   const complete = () => {
     playClick();
