@@ -7,3 +7,4 @@
 - [x] Test weekly persistence, day rollover, target changes, and cross-tab updates; verify the dashboard.
 - [x] Match chart legend colors and add Water/Sleep week-over-week averages using retained real logs.
 - [x] Test comparisons and verify chart colors and both views in the dashboard.
+- [ ] Audit and polish contrast, control names, keyboard focus and profile focus containment; verify the complete onboarding flow.
