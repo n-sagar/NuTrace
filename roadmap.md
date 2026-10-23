@@ -5,3 +5,5 @@
 - [x] Test exact custom goal persistence and verify the two-tab dashboard flow.
 - [x] Add real seven-day history and reactive Water/Sleep charts with averages and goal streaks.
 - [x] Test weekly persistence, day rollover, target changes, and cross-tab updates; verify the dashboard.
+- [ ] Match chart legend colors and add Water/Sleep week-over-week averages using retained real logs.
+- [ ] Test comparisons and verify chart colors and both views in the dashboard.
