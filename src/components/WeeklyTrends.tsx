@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Droplet, Flame, Moon, TrendingUp } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Droplet, Flame, Minus, Moon, TrendingUp } from "lucide-react";
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dailySnapshot, playClick, type DailyState } from "@/lib/daily";
 import { loadHistory, subscribeHistory, summarizeWeek, type TrendMode } from "@/lib/weekly";
 import { type Prefs } from "@/lib/prefs";
-import { cn } from "@/lib/utils";
 
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -23,6 +22,9 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const goal = water ? prefs.waterGoal / 1000 : prefs.sleepGoal;
   const summary = summarizeWeek(history, dailySnapshot(daily), mode, goal);
   const color = water ? "var(--water)" : "var(--sleep)";
+  const mutedColor = "var(--weekly-bar-muted)";
+  const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
+  const TrendIcon = change === null || change === 0 ? Minus : change > 0 ? ArrowUpRight : ArrowDownRight;
   const ceiling = Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2;
   const first = summary.days[0];
   const last = summary.days[6];
@@ -47,6 +49,10 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               <div>
                 <p className="text-xs text-muted-foreground">Weekly average</p>
                 <p className="mt-1 font-mono text-2xl" aria-label="Weekly average">{summary.average === null ? "—" : summary.average.toFixed(1)}<span className="ml-1 font-sans text-xs text-muted-foreground">{unit} / day</span></p>
+               <p aria-label="Week-over-week comparison" title={`Averages use logged days only: ${summary.loggedDays} this week, ${summary.previousLoggedDays} last week.`} className={`mt-1 flex flex-wrap items-center gap-1 text-[11px] ${change !== null && change > 0 ? "text-trend-positive" : "text-muted-foreground"}`}>
+                 {change !== null && <TrendIcon size={13} aria-hidden="true" />}
+                 {change === null ? "Comparison unavailable" : `${change > 0 ? "+" : ""}${change}% vs last week`}
+               </p>
                 <p className="mt-1 text-xs text-muted-foreground">{summary.loggedDays} logged {summary.loggedDays === 1 ? "day" : "days"}</p>
               </div>
               <div className="border-l border-border pl-4">
@@ -68,13 +74,13 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                   }} />
                   <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion} animationDuration={350}>
-                    {summary.days.map((day) => <Cell key={day.date} fill={day.met ? color : "var(--weekly-bar-muted)"} />)}
+                    {summary.days.map((day) => <Cell key={day.date} fill={day.met ? color : mutedColor} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5"><span className={cn("size-2 rounded-sm", water ? "bg-water" : "bg-sleep")} />Goal met<span className="ml-2 size-2 rounded-sm bg-weekly-bar-muted" />Below goal</span>
+              <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
               <span>Goal: <span className="font-mono text-foreground">{goal}{unit}</span></span>
             </div>
           </motion.div>
