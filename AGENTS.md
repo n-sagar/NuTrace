@@ -12,5 +12,6 @@
 - Use Framer Motion for welcome-screen orbit and CTA transforms, respecting reduced-motion preferences; keep visual values in global semantic CSS tokens.
 - Keep dashboard targets derived from the same React preferences state saved through the shared preferences helper; this ensures profile edits update all trackers immediately without duplicating goal state.
 - Subscribe dashboard preferences through the shared storage/local-event helper, use its default factory for absent preferences, and synchronize daily storage separately so cross-tab edits and session clearing stay consistent.
-- Keep seven-day snapshots in the shared local history helper, archive daily state on saves and rollover, and compute analytics from current preferences; this preserves the existing local prototype without inventing past logs or duplicating targets.
+- Retain fourteen local-day snapshots in the shared history helper for two adjacent seven-day windows; archive on saves and rollover, compute analytics from current preferences, and compare logged-day averages only with a positive prior baseline, without inventing missing logs.
+- Use identical semantic SVG fill tokens for weekly bars and legend dots so their colors stay matched in both metric views.
 - Use local calendar dates for daily resets and weekly buckets so charts match the midnight countdown.

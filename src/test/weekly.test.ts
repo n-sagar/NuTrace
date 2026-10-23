@@ -26,10 +26,10 @@ describe("Seven-day history", () => {
     expect(loadDaily()).toMatchObject({ date: "2026-10-22", waterMl: 0, sleepHours: null });
     expect(loadHistory()).toEqual([{ date: "2026-10-21", waterMl: 2250, sleepHours: 7.5 }]);
   });
-  it("retains only the current seven days", () => {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([{ ...today, date: "2026-10-15" }, { ...today, date: "2026-10-16" }]));
+  it("retains fourteen days for current and previous week comparisons", () => {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([{ ...today, date: "2026-10-08" }, { ...today, date: "2026-10-09" }, { ...today, date: "2026-10-15" }, { ...today, date: "2026-10-16" }]));
     recordDay(today);
-    expect(loadHistory().map((day) => day.date)).toEqual(["2026-10-16", "2026-10-22"]);
+    expect(loadHistory().map((day) => day.date)).toEqual(["2026-10-09", "2026-10-15", "2026-10-16", "2026-10-22"]);
   });
   it("ignores invalid history without breaking the chart", () => {
     localStorage.setItem(HISTORY_KEY, "invalid");
@@ -55,6 +55,35 @@ describe("Seven-day history", () => {
     stop();
     recordDay(today);
     expect(listener).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("Week-over-week comparisons", () => {
+  const prior = [{ date: "2026-10-09", waterMl: 2000, sleepHours: 8 }, { date: "2026-10-15", waterMl: 2000, sleepHours: 8 }];
+  it("calculates a +15% water increase from adjacent logged-day averages", () => {
+    const result = summarizeWeek(prior, { ...today, waterMl: 2300 }, "water", 2);
+    expect(result.previousAverage).toBe(2);
+    expect(result.previousLoggedDays).toBe(2);
+    expect(result.changePercent).toBeCloseTo(15);
+  });
+  it("calculates a -5% sleep decrease independently of the edited goal", () => {
+    const current = { ...today, sleepHours: 7.6 };
+    expect(summarizeWeek(prior, current, "sleep", 8).changePercent).toBeCloseTo(-5);
+    expect(summarizeWeek(prior, current, "sleep", 9).changePercent).toBeCloseTo(-5);
+  });
+  it("returns zero for unchanged averages", () => {
+    expect(summarizeWeek(prior, { ...today, waterMl: 2000 }, "water", 2).changePercent).toBe(0);
+  });
+  it("does not invent comparisons with missing or zero previous data", () => {
+    expect(summarizeWeek([], today, "water", 2).changePercent).toBeNull();
+    expect(summarizeWeek([{ ...prior[0], date: "2026-10-09", waterMl: 0, sleepHours: null }], today, "water", 2).changePercent).toBeNull();
+    expect(summarizeWeek(prior, { ...today, sleepHours: null }, "sleep", 8).changePercent).toBeNull();
+  });
+  it("excludes older records and separates previous and current window boundaries", () => {
+    const result = summarizeWeek([...prior, { date: "2026-10-08", waterMl: 6000, sleepHours: 12 }, { date: "2026-10-16", waterMl: 2300, sleepHours: 7.6 }], { ...today, waterMl: 2300 }, "water", 2);
+    expect(result.previousAverage).toBe(2);
+    expect(result.average).toBe(2.3);
+    expect(result.changePercent).toBeCloseTo(15);
   });
 });
 

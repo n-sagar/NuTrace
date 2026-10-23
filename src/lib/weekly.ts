@@ -7,12 +7,16 @@ export function localDateKey(date = new Date()): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-export function weekDates(now = new Date()): string[] {
-  return Array.from({ length: 7 }, (_, i) => {
+function recentDates(count: number, now = new Date()): string[] {
+  return Array.from({ length: count }, (_, i) => {
     const day = new Date(now);
-    day.setDate(day.getDate() - 6 + i);
+    day.setDate(day.getDate() - count + 1 + i);
     return localDateKey(day);
   });
+}
+
+export function weekDates(now = new Date()): string[] {
+  return recentDates(7, now);
 }
 
 export function loadHistory(): DaySnapshot[] {
@@ -28,7 +32,7 @@ export function loadHistory(): DaySnapshot[] {
 
 export function recordDay(day: DaySnapshot): void {
   try {
-    const dates = weekDates();
+    const dates = recentDates(14);
     const history = loadHistory().filter((row) => row.date !== day.date && dates.includes(row.date));
     if (dates.includes(day.date)) history.push(day);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history.sort((a, b) => a.date.localeCompare(b.date))));
@@ -59,10 +63,22 @@ export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: 
   });
   const logged = days.filter((day) => day.value !== null);
   const average = logged.length ? logged.reduce((sum, day) => sum + (day.value ?? 0), 0) / logged.length : null;
+  const previousEnd = new Date(now);
+  previousEnd.setDate(previousEnd.getDate() - 7);
+  const previousValues = weekDates(previousEnd).flatMap((date) => {
+    const row = rows.get(date);
+    const value = mode === "water" ? row ? row.waterMl / 1000 : null : row?.sleepHours ?? null;
+    return value === null ? [] : [value];
+  });
+  const previousAverage = previousValues.length ? previousValues.reduce((sum, value) => sum + value, 0) / previousValues.length : null;
+  // Missing logs aren't zeroes; a zero baseline has no finite percentage change.
+  const changePercent = average !== null && previousAverage !== null && previousAverage > 0
+    ? (average - previousAverage) / previousAverage * 100
+    : null;
   // An unfinished today does not interrupt the streak of completed days.
   let index = days.length - 1;
   if (!days[index]?.met) index--;
   let streak = 0;
   while (index >= 0 && days[index]?.met) { streak++; index--; }
-  return { days, average, streak, loggedDays: logged.length, metDays: days.filter((day) => day.met).length };
+  return { days, average, previousAverage, previousLoggedDays: previousValues.length, changePercent, streak, loggedDays: logged.length, metDays: days.filter((day) => day.met).length };
 }
