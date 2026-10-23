@@ -1,3 +1,5 @@
+import * as SwitchPrimitive from "@radix-ui/react-switch";
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
@@ -117,10 +119,10 @@ function Dashboard() {
       : "—";
 
   return (
-    <main className="mx-auto max-w-md space-y-4 px-4 py-8">
+    <div className="mx-auto max-w-md space-y-4 px-4 py-8">
       <div className="flex items-center justify-between">
         <h1 className="font-mono text-xl">NuTrace</h1>
-        <button aria-label="Open account profile" onClick={() => setProfileOpen(true)} className="rounded-full text-2xl transition hover:scale-110">{p.avatar}</button>
+        <Button variant="plain" id="profile-trigger" aria-label="Open account profile" aria-haspopup="dialog" aria-expanded={profileOpen} onClick={() => setProfileOpen(true)} className="min-h-11 min-w-11 rounded-full text-2xl transition hover:scale-110">{p.avatar}</Button>
       </div>
       <p className="text-sm text-muted-foreground">Hey {p.name}, hope you're doing well</p>
 
@@ -137,35 +139,34 @@ function Dashboard() {
       {/* Water tracker */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
-          <div className="text-muted-foreground">Water</div>
+          <h2 className="text-muted-foreground">Water</h2>
           {d.waterMl >= p.waterGoal && (
             <span className="rounded-full border border-water bg-water/15 px-3 py-1 text-xs font-semibold text-water">Goal Met! 🎉</span>
           )}
         </div>
         <div className="relative mx-auto my-4 grid size-52 place-items-center">
-          <svg viewBox="0 0 200 200" className="absolute inset-0 -rotate-90">
+          <svg aria-hidden="true" viewBox="0 0 200 200" className="absolute inset-0 -rotate-90">
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border)" strokeWidth="14" />
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--water)" strokeWidth="14" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} className="transition-all" />
           </svg>
-          <div className="text-center"><div className="text-4xl">{(d.waterMl / 1000).toFixed(2)}L</div><div className="text-sm text-muted-foreground">/ {p.waterGoal / 1000}L Goal</div></div>
+          <div className="text-center" role="status" aria-live="polite" aria-atomic="true"><div className="text-4xl">{(d.waterMl / 1000).toFixed(2)}L</div><div className="text-sm text-muted-foreground">/ {p.waterGoal / 1000}L Goal</div></div>
         </div>
         <div className="flex items-center justify-center gap-3">
-          <button aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground"><Minus size={16} /></button>
-          <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</button>
-          <button disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</button>
-          <button aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-10 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></button>
+          <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground"><Minus size={16} /></Button>
+          <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</Button>
+          <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</Button>
+          <Button variant="plain" aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></Button>
         </div>
       </div>
 
       {/* Sleep tracker */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-muted-foreground"><Moon size={16} className="text-sleep" />Sleep</div>
-          <button
-            role="switch"
-            aria-checked={synced}
-            onClick={() => update({ syncOn: !synced })}
-            className={cn("flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition",
+          <h2 className="flex items-center gap-2 text-muted-foreground"><Moon size={16} className="text-sleep" />Sleep</h2>
+          <SwitchPrimitive.Root asChild checked={synced} onCheckedChange={(syncOn) => update({ syncOn })}>
+          <Button variant="plain"
+            aria-label="Apple Health sync"
+            className={cn("h-auto min-h-11 flex items-center gap-2 whitespace-normal rounded-full border px-3 py-1.5 text-xs transition",
               synced ? "border-sleep bg-sleep/15 text-sleep" : "border-border text-muted-foreground")}
           >
             <Watch size={13} />
@@ -173,7 +174,8 @@ function Dashboard() {
             <span className={cn("relative h-4 w-7 rounded-full transition", synced ? "bg-sleep" : "bg-border")}>
               <span className={cn("absolute top-0.5 size-3 rounded-full bg-foreground transition-all", synced ? "left-3.5" : "left-0.5")} />
             </span>
-          </button>
+          </Button>
+          </SwitchPrimitive.Root>
         </div>
 
         <div className="mt-4 text-center">
@@ -213,11 +215,11 @@ function Dashboard() {
               <p className="text-xs text-muted-foreground">How long did you sleep?</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {QUICK_HOURS.map((h) => (
-                  <button key={h} onClick={() => update({ sleepHours: h })}
-                    className={cn("rounded-full border px-4 py-2 font-mono text-sm transition",
-                      d.sleepHours === h ? "border-sleep bg-sleep/15 text-sleep" : "border-border text-muted-foreground hover:text-foreground")}>
+                  <Button variant="plain" key={h} aria-label={`Log ${h} hours of sleep`} aria-pressed={d.sleepHours === h} onClick={() => update({ sleepHours: h })}
+                    className={cn("h-auto min-h-11 rounded-full border px-4 py-2 font-mono text-sm transition",
+                      d.sleepHours === h ? "border-sleep bg-sleep/15 text-sleep" : "border-input text-muted-foreground hover:text-foreground")}>
                     {h}h
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -225,11 +227,11 @@ function Dashboard() {
               <p className="text-xs text-muted-foreground">How do you feel?</p>
               <div className="mt-2 flex gap-2">
                 {QUALITIES.map((q) => (
-                  <button key={q.key} onClick={() => update({ sleepQuality: q.key })}
-                    className={cn("flex flex-1 flex-col items-center gap-1 rounded-2xl border py-3 text-xs transition",
-                      d.sleepQuality === q.key ? "border-sleep bg-sleep/15" : "border-border text-muted-foreground hover:text-foreground")}>
+                  <Button variant="plain" key={q.key} aria-label={q.label} aria-pressed={d.sleepQuality === q.key} onClick={() => update({ sleepQuality: q.key })}
+                    className={cn("h-auto min-h-11 flex flex-1 flex-col items-center gap-1 rounded-2xl border py-3 text-xs transition",
+                      d.sleepQuality === q.key ? "border-sleep bg-sleep/15" : "border-input text-muted-foreground hover:text-foreground")}>
                     <span className="text-xl">{q.emoji}</span>{q.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -240,6 +242,6 @@ function Dashboard() {
       {profileOpen && (
         <ProfileModal prefs={p} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
       )}
-    </main>
+    </div>
   );
 }

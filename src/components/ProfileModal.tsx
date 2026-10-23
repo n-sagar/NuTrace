@@ -1,8 +1,10 @@
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { X, LogOut, Droplet, Moon } from "lucide-react";
+import { LogOut, Droplet, Moon } from "lucide-react";
 import { WATER_GOALS, SLEEP_GOALS, clampWaterGoal, clampSleepGoal, MIN_WATER_GOAL, MAX_WATER_GOAL, MIN_SLEEP_GOAL, MAX_SLEEP_GOAL, type Prefs } from "@/lib/prefs";
 import { CustomGoalRow } from "@/components/CustomGoalRow";
 import { playClick } from "@/lib/daily";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -12,12 +14,12 @@ type Props = {
   onClose: () => void;
 };
 
-function GoalPill({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep" }) {
+function GoalPill({ active, onClick, children, tone, label }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep"; label?: string }) {
   return (
-    <button type="button" onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-      active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-border bg-card text-muted-foreground hover:text-foreground")}>
+    <Button variant="plain" type="button" aria-pressed={active} aria-label={label} onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+      active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-input bg-card text-muted-foreground hover:text-foreground")}>
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -27,19 +29,18 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
   const isWaterPreset = (WATER_GOALS as number[]).includes(prefs.waterGoal);
   const isSleepPreset = (SLEEP_GOALS as number[]).includes(prefs.sleepGoal);
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center" role="dialog" aria-modal="true" aria-label="Account profile" onClick={onClose}>
-      <div className="w-full max-w-md space-y-5 rounded-t-3xl border border-border bg-card p-6 sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); document.getElementById("profile-trigger")?.focus(); }} className="left-1/2 top-auto bottom-0 max-h-[90dvh] w-full max-w-md translate-y-0 space-y-5 overflow-y-auto rounded-t-3xl bg-card p-6 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 sm:rounded-3xl">
+        <DialogTitle>Account profile</DialogTitle>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="grid size-14 place-items-center rounded-2xl border border-border bg-background text-3xl">{prefs.avatar}</span>
             <div>
               <div className="text-lg font-semibold">{prefs.name}</div>
-              <div className="text-sm text-muted-foreground">{prefs.email}</div>
+              <DialogDescription className="break-all">{prefs.email}</DialogDescription>
             </div>
           </div>
-          <button aria-label="Close profile" onClick={onClose} className="grid size-9 place-items-center rounded-full border border-border text-muted-foreground transition hover:text-foreground">
-            <X size={16} />
-          </button>
+
         </div>
 
         <div className="space-y-4 rounded-2xl border border-border bg-background p-4">
@@ -50,7 +51,7 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
               {WATER_GOALS.map((w) => (
                 <GoalPill key={w} tone="water" active={prefs.waterGoal === w} onClick={() => { setWaterCustom(false); onSave({ ...prefs, waterGoal: w }); }}>{w / 1000}L</GoalPill>
               ))}
-              <GoalPill tone="water" active={waterCustom || !isWaterPreset} onClick={() => setWaterCustom((v) => !v)}>
+              <GoalPill tone="water" label="Custom water goal" active={waterCustom || !isWaterPreset} onClick={() => setWaterCustom((v) => !v)}>
                 {isWaterPreset ? "Custom" : `Custom: ${prefs.waterGoal / 1000}L`}
               </GoalPill>
             </div>
@@ -65,7 +66,7 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
               {SLEEP_GOALS.map((s) => (
                 <GoalPill key={s} tone="sleep" active={prefs.sleepGoal === s} onClick={() => { setSleepCustom(false); onSave({ ...prefs, sleepGoal: s }); }}>{s}h</GoalPill>
               ))}
-              <GoalPill tone="sleep" active={sleepCustom || !isSleepPreset} onClick={() => setSleepCustom((v) => !v)}>
+              <GoalPill tone="sleep" label="Custom sleep goal" active={sleepCustom || !isSleepPreset} onClick={() => setSleepCustom((v) => !v)}>
                 {isSleepPreset ? "Custom" : `Custom: ${prefs.sleepGoal}h`}
               </GoalPill>
             </div>
@@ -76,10 +77,10 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
           </div>
         </div>
 
-        <button onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20">
+        <Button variant="plain" onClick={onLogout} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 h-auto min-h-11 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20">
           <LogOut size={15} /> Log Out
-        </button>
-      </div>
-    </div>
+        </Button>
+      </DialogContent>
+    </Dialog>
   );
 }

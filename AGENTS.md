@@ -15,3 +15,5 @@
 - Retain fourteen local-day snapshots in the shared history helper for two adjacent seven-day windows; archive on saves and rollover, compute analytics from current preferences, and compare logged-day averages only with a positive prior baseline, without inventing missing logs.
 - Use identical semantic SVG fill tokens for weekly bars and legend dots so their colors stay matched in both metric views.
 - Use local calendar dates for daily resets and weekly buckets so charts match the midnight countdown.
+
+- Use shared Button controls, Radix dialog focus management and a single root main landmark; expose selection states and keep readable text/focus colors in semantic tokens.
