@@ -1,3 +1,4 @@
+import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -162,11 +163,9 @@ function Dashboard() {
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-muted-foreground"><Moon size={16} className="text-sleep" />Sleep</h2>
+          <SwitchPrimitive.Root asChild checked={synced} onCheckedChange={(syncOn) => update({ syncOn })}>
           <Button variant="plain"
-            role="switch"
             aria-label="Apple Health sync"
-            aria-checked={synced}
-            onClick={() => update({ syncOn: !synced })}
             className={cn("h-auto min-h-11 flex items-center gap-2 whitespace-normal rounded-full border px-3 py-1.5 text-xs transition",
               synced ? "border-sleep bg-sleep/15 text-sleep" : "border-border text-muted-foreground")}
           >
@@ -176,6 +175,7 @@ function Dashboard() {
               <span className={cn("absolute top-0.5 size-3 rounded-full bg-foreground transition-all", synced ? "left-3.5" : "left-0.5")} />
             </span>
           </Button>
+          </SwitchPrimitive.Root>
         </div>
 
         <div className="mt-4 text-center">

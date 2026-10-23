@@ -85,12 +85,12 @@
   --muted-foreground: oklch(0.75 0.02 265);
   --accent: oklch(0.26 0.025 265);
   --accent-foreground: oklch(0.97 0.005 265);
-  --destructive: oklch(0.6 0.22 27);
+  --destructive: oklch(0.75 0.15 27);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 14%);
   --input: oklch(0.55 0.02 265);
   --ring: oklch(0.72 0.15 245);
-  --water: oklch(0.7 0.16 245);
+  --water: oklch(0.75 0.14 245);
   --sleep: oklch(0.74 0.14 285);
   --energy: oklch(0.82 0.13 90);
   --weekly-bar-muted: oklch(0.43 0.035 255);
