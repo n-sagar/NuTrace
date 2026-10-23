@@ -25,7 +25,7 @@ function Landing() {
     transition: { duration: reducedMotion ? 0 : duration, repeat: reducedMotion ? 0 : Infinity, ease: "linear" as const },
   });
   return (
-    <main className="welcome-background flex min-h-svh flex-col items-center justify-center px-6 py-12">
+    <div className="welcome-background flex min-h-svh flex-col items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-sm flex-col items-center">
         <div className="relative grid aspect-square w-full max-w-[340px] place-items-center" aria-label="NuTrace hydration and sleep solar system">
           <div className="absolute inset-5 rounded-full border border-border/70" />
@@ -62,6 +62,6 @@ function Landing() {
         </motion.div>
         <p className="mt-6 text-sm text-muted-foreground">Already have an account? <Link to="/dashboard" className="text-foreground underline underline-offset-4">Log In</Link></p>
       </div>
-    </main>
+    </div>
   );
 }

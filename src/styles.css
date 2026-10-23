@@ -82,16 +82,16 @@
   --secondary: oklch(0.26 0.025 265);
   --secondary-foreground: oklch(0.97 0.005 265);
   --muted: oklch(0.26 0.025 265);
-  --muted-foreground: oklch(0.68 0.02 265);
+  --muted-foreground: oklch(0.75 0.02 265);
   --accent: oklch(0.26 0.025 265);
   --accent-foreground: oklch(0.97 0.005 265);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 14%);
-  --input: oklch(1 0 0 / 14%);
+  --input: oklch(0.55 0.02 265);
   --ring: oklch(0.72 0.15 245);
   --water: oklch(0.7 0.16 245);
-  --sleep: oklch(0.62 0.17 285);
+  --sleep: oklch(0.74 0.14 285);
   --energy: oklch(0.82 0.13 90);
   --weekly-bar-muted: oklch(0.43 0.035 255);
   --trend-positive: oklch(0.76 0.15 155);
@@ -118,14 +118,14 @@
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
   --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
+  --muted-foreground: oklch(0.75 0.02 265);
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --input: oklch(0.55 0.02 265);
+  --ring: oklch(0.72 0.15 245);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -177,4 +177,12 @@
   border: 1px solid var(--border);
   box-shadow: var(--shadow-node);
   will-change: transform;
+}
+
+@layer base {
+  :where(a, button, input, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  input::placeholder { color: var(--muted-foreground); opacity: 1; }
 }
