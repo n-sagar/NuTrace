@@ -34,6 +34,22 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   return (
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
       <p className="sr-only" role="status">{srSummary}</p>
+      {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
+      <table className="sr-only">
+        <caption>{metric} log for the past 7 days, daily goal {goal}{unit}</caption>
+        <thead>
+          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">Goal</th></tr>
+        </thead>
+        <tbody>
+          {summary.days.map((day) => (
+            <tr key={day.date}>
+              <th scope="row">{dayLabel(day.date)}</th>
+              <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
+              <td>{day.value === null ? "—" : day.met ? "Met" : "Not met"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
