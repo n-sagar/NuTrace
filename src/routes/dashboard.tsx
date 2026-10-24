@@ -151,7 +151,7 @@ function Dashboard() {
           </svg>
           <div className="text-center" role="status" aria-live="polite" aria-atomic="true"><div className="text-4xl">{(d.waterMl / 1000).toFixed(2)}L</div><div className="text-sm text-muted-foreground">/ {p.waterGoal / 1000}L Goal</div></div>
         </div>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3">
           <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground"><Minus size={16} /></Button>
           <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</Button>
           <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</Button>
@@ -225,7 +225,7 @@ function Dashboard() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">How do you feel?</p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {QUALITIES.map((q) => (
                   <Button variant="plain" key={q.key} aria-label={q.label} aria-pressed={d.sleepQuality === q.key} onClick={() => update({ sleepQuality: q.key })}
                     className={cn("h-auto min-h-11 flex flex-1 flex-col items-center gap-1 rounded-2xl border py-3 text-xs transition",

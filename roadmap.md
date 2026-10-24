@@ -8,3 +8,4 @@
 - [x] Match chart legend colors and add Water/Sleep week-over-week averages using retained real logs.
 - [x] Test comparisons and verify chart colors and both views in the dashboard.
 - [x] Audit and polish contrast, control names, keyboard focus and profile focus containment; verify the complete onboarding flow.
+- [x] Add screen-reader weekly summaries, verify 200–400% zoom reflow, and enforce reduced-motion fallbacks.
