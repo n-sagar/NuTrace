@@ -11,10 +11,10 @@ const daily: DailyState = { date: localDateKey(), waterMl: 0, syncOn: false, sle
 describe("WeeklyTrends screen-reader summary", () => {
   beforeEach(() => localStorage.clear());
 
-  it("announces unavailable metrics when nothing is logged", () => {
+  it("announces zero progress and no comparison when nothing is logged", () => {
     render(<WeeklyTrends daily={daily} prefs={prefs} />);
     const summary = screen.getByText(/Weekly Water average:/, { selector: "p.sr-only" });
-    expect(summary).toHaveTextContent("Weekly Water average: not available across 0 logged days. Goal met on 0 of 7 days. Goal streak: 0 days. Comparison with last week unavailable.");
+    expect(summary).toHaveTextContent("Weekly Water average: 0.0L per day across 1 logged day. Goal met on 0 of 7 days. Goal streak: 0 days. Comparison with last week unavailable.");
   });
 
   it("announces the average, goal attainment and streak for logged days", () => {
