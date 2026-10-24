@@ -47,7 +47,9 @@ describe("WeeklyTrends screen-reader summary", () => {
     const today = localDateKey();
     recordDay({ date: today, waterMl: 2500, sleepHours: 8 });
     render(<WeeklyTrends daily={{ ...daily, sleepHours: 8 }} prefs={prefs} />);
-    fireEvent.click(screen.getByRole("tab", { name: /Sleep/ }));
+    const sleepTab = screen.getByRole("tab", { name: /Sleep/ });
+    fireEvent.mouseDown(sleepTab);
+    fireEvent.click(sleepTab);
     const table = screen.getByRole("table", { name: /Sleep log for the past 7 days/ });
     expect(within(table).getByRole("cell", { name: "8h" })).toBeInTheDocument();
     expect(within(table).getByRole("cell", { name: "Met" })).toBeInTheDocument();
