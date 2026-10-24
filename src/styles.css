@@ -186,3 +186,14 @@
   }
   input::placeholder { color: var(--muted-foreground); opacity: 1; }
 }
+
+/* Motion sensitivity: collapse CSS animations/transitions to near-instant;
+   Framer Motion paths handle their own reduced-motion fade fallbacks. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

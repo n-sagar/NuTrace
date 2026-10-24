@@ -28,9 +28,12 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const ceiling = Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2;
   const first = summary.days[0];
   const last = summary.days[6];
+  const metric = water ? "Water" : "Sleep";
+  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}. ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
+      <p className="sr-only" role="status">{srSummary}</p>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
@@ -44,9 +47,9 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           <TabsTrigger value="sleep" className="h-11 gap-2 data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
         </TabsList>
         <TabsContent value={mode} className="mt-5" aria-label={`${water ? "Water" : "Sleep"} weekly summary`}>
-          <motion.div key={mode} initial={{ opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.22 }}>
+          <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Weekly average</p>
                 <p className="mt-1 font-mono text-2xl" >{summary.average === null ? "—" : summary.average.toFixed(1)}<span className="ml-1 font-sans text-xs text-muted-foreground">{unit} / day</span></p>
                <p  title={`Averages use logged days only: ${summary.loggedDays} this week, ${summary.previousLoggedDays} last week.`} className={`mt-1 flex flex-wrap items-center gap-1 text-[11px] ${change !== null && change > 0 ? "text-trend-positive" : "text-muted-foreground"}`}>
@@ -55,7 +58,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                </p>
                 <p className="mt-1 text-xs text-muted-foreground">{summary.loggedDays} logged {summary.loggedDays === 1 ? "day" : "days"}</p>
               </div>
-              <div className="border-l border-border pl-4">
+              <div className="min-w-0 border-l border-border pl-4">
                 <p className="flex items-center gap-1 text-xs text-muted-foreground"><Flame size={12} />Goal streak</p>
                 <p className="mt-1 font-mono text-2xl" >{summary.streak}<span className="ml-1 font-sans text-xs text-muted-foreground">{summary.streak === 1 ? "day" : "days"}</span></p>
                 <p className="mt-1 text-xs text-muted-foreground">{summary.metDays} of 7 goals met</p>
