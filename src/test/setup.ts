@@ -5,6 +5,14 @@ Object.defineProperty(window, "scrollTo", {
   value: () => {},
 });
 
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.defineProperty(window, "ResizeObserver", { writable: true, value: ResizeObserverStub });
+Object.defineProperty(globalThis, "ResizeObserver", { writable: true, value: ResizeObserverStub });
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
