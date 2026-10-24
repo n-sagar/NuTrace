@@ -29,4 +29,27 @@ describe("WeeklyTrends screen-reader summary", () => {
     render(<WeeklyTrends daily={daily} prefs={prefs} />);
     expect(screen.getByRole("img", { name: /Water over seven days/ })).toBeInTheDocument();
   });
+
+  it("provides a hidden data table with one row per day for the active metric", () => {
+    const today = localDateKey();
+    recordDay({ date: today, waterMl: 2500, sleepHours: 8 });
+    render(<WeeklyTrends daily={{ ...daily, waterMl: 2500 }} prefs={prefs} />);
+    const table = screen.getByRole("table", { name: /Water log for the past 7 days/ });
+    expect(table).toHaveClass("sr-only");
+    const rows = within(table).getAllByRole("row");
+    expect(rows).toHaveLength(8); // header + 7 days
+    expect(within(table).getByRole("cell", { name: "2.5L" })).toBeInTheDocument();
+    expect(within(table).getByRole("cell", { name: "Met" })).toBeInTheDocument();
+    expect(within(table).getAllByRole("cell", { name: "Not logged" })).toHaveLength(6);
+  });
+
+  it("switches the hidden data table to sleep values with the sleep tab", () => {
+    const today = localDateKey();
+    recordDay({ date: today, waterMl: 2500, sleepHours: 8 });
+    render(<WeeklyTrends daily={{ ...daily, sleepHours: 8 }} prefs={prefs} />);
+    fireEvent.click(screen.getByRole("tab", { name: /Sleep/ }));
+    const table = screen.getByRole("table", { name: /Sleep log for the past 7 days/ });
+    expect(within(table).getByRole("cell", { name: "8h" })).toBeInTheDocument();
+    expect(within(table).getByRole("cell", { name: "Met" })).toBeInTheDocument();
+  });
 });
