@@ -7,7 +7,7 @@ export function QuickAddButton({ label, disabled, onAdd }: { label: string; disa
   const reduced = useReducedMotion();
   const [pulse, setPulse] = useState(0);
   return (
-    <motion.div className="relative" whileTap={disabled || reduced ? undefined : { scale: 0.92 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>
+    <motion.div className="relative" whileTap={{ scale: disabled || reduced ? 1 : 0.92 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>
       <AnimatePresence>
         {pulse > 0 && (
           <motion.span
