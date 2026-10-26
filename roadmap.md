@@ -10,3 +10,4 @@
 - [x] Audit and polish contrast, control names, keyboard focus and profile focus containment; verify the complete onboarding flow.
 - [x] Add screen-reader weekly summaries, verify 200–400% zoom reflow, and enforce reduced-motion fallbacks.
 - [x] Add hidden 7-day data tables for both charts and verify keyboard focus rings across dashboard and profile drawer.
+- [ ] Center and constrain the account profile window; verify Close-first focus, Tab cycling, Escape and avatar focus return.
