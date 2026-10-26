@@ -29,14 +29,14 @@ export function ProfileModal({ prefs, onSave, onLogout, onClose }: Props) {
   const isWaterPreset = (WATER_GOALS as number[]).includes(prefs.waterGoal);
   const isSleepPreset = (SLEEP_GOALS as number[]).includes(prefs.sleepGoal);
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); document.getElementById("profile-trigger")?.focus(); }} className="left-1/2 top-auto bottom-0 max-h-[90dvh] w-full max-w-md translate-y-0 space-y-5 overflow-y-auto rounded-t-3xl bg-card p-6 sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 sm:rounded-3xl">
-        <DialogTitle>Account profile</DialogTitle>
+    <Dialog modal open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); document.getElementById("profile-trigger")?.focus(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md space-y-5 overflow-y-auto rounded-3xl bg-card p-6">
+        <DialogTitle className="pr-12">Account profile</DialogTitle>
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid size-14 place-items-center rounded-2xl border border-border bg-background text-3xl">{prefs.avatar}</span>
-            <div>
-              <div className="text-lg font-semibold">{prefs.name}</div>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-14 shrink-0 place-items-center rounded-2xl border border-border bg-background text-3xl">{prefs.avatar}</span>
+            <div className="min-w-0">
+              <div className="break-words text-lg font-semibold">{prefs.name}</div>
               <DialogDescription className="break-all">{prefs.email}</DialogDescription>
             </div>
           </div>
