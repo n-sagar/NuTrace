@@ -8,6 +8,8 @@ import { loadPrefs, savePrefs, clearSession, defaultPrefs, subscribePrefs, type 
 import { loadDaily, saveDaily, timeToMidnight, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
 import { ProfileModal } from "@/components/ProfileModal";
 import { WeeklyTrends } from "@/components/WeeklyTrends";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
+import { QuickAddButton } from "@/components/QuickAddButton";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -149,12 +151,12 @@ function Dashboard() {
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border)" strokeWidth="14" />
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--water)" strokeWidth="14" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} className="transition-all" />
           </svg>
-          <div className="text-center" role="status" aria-live="polite" aria-atomic="true"><div className="text-4xl">{(d.waterMl / 1000).toFixed(2)}L</div><div className="text-sm text-muted-foreground">/ {p.waterGoal / 1000}L Goal</div></div>
+          <div className="text-center"><div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{(d.waterMl / 1000).toFixed(2)}L of {p.waterGoal / 1000}L goal</div><div aria-hidden="true" className="text-4xl tabular-nums"><AnimatedNumber value={d.waterMl / 1000} format={(n) => `${n.toFixed(2)}L`} /></div><div aria-hidden="true" className="text-sm text-muted-foreground tabular-nums">/ <AnimatedNumber value={p.waterGoal / 1000} format={(n) => `${+n.toFixed(2)}L`} /> Goal · <AnimatedNumber value={Math.round(pct * 100)} format={(n) => `${Math.round(n)}%`} /></div></div>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground"><Minus size={16} /></Button>
-          <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+250ml</Button>
-          <Button variant="plain" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(500)} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">+500ml</Button>
+          <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground active:scale-95"><Minus size={16} /></Button>
+          <QuickAddButton label="+250ml" disabled={d.waterMl >= MAX_WATER_ML} onAdd={() => addWater(250)} />
+          <QuickAddButton label="+500ml" disabled={d.waterMl >= MAX_WATER_ML} onAdd={() => addWater(500)} />
           <Button variant="plain" aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></Button>
         </div>
       </div>
