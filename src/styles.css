@@ -96,6 +96,8 @@
   --weekly-bar-muted: oklch(0.43 0.035 255);
   --trend-positive: oklch(0.76 0.15 155);
   --welcome-ambient: radial-gradient(ellipse at 20% 20%, color-mix(in oklab, var(--water) 5%, transparent), transparent 65%), radial-gradient(ellipse at 90% 80%, color-mix(in oklab, var(--sleep) 5%, transparent), transparent 65%);
+  --shadow-water-pulse: 0 0 18px color-mix(in oklab, var(--water) 55%, transparent);
+  --shadow-bar-focus: drop-shadow(0 0 6px color-mix(in oklab, var(--foreground) 45%, transparent));
   --shadow-logo: 0 0 45px color-mix(in oklab, var(--water) 9%, transparent);
   --shadow-node: 0 0 18px color-mix(in oklab, currentColor 12%, transparent);
   --gradient-cta: linear-gradient(90deg, oklch(0.78 0.14 230), oklch(0.7 0.14 275));
