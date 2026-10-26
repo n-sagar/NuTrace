@@ -13,6 +13,7 @@ const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateStr
 export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs }) {
   const [mode, setMode] = useState<TrendMode>("water");
   const [history, setHistory] = useState(loadHistory);
+  const [active, setActive] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
   useEffect(() => subscribeHistory(() => setHistory(loadHistory())), []);
   // Logout clears history along with preferences and daily data.
@@ -29,6 +30,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const first = summary.days[0];
   const last = summary.days[6];
   const metric = water ? "Water" : "Sleep";
+  const activeDay = active === null ? undefined : summary.days[active];
   const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}. ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
@@ -80,23 +82,49 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 <p className="mt-1 text-xs text-muted-foreground">{summary.metDays} of 7 goals met</p>
               </div>
             </div>
-            <div className="mt-5 h-48 w-full" role="img" aria-label={`${water ? "Water" : "Sleep"} over seven days. Daily goal ${goal}${unit}. ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${day.met ? ", goal met" : ""}`}`).join(". ")}`}>
+            <div
+              tabIndex={0}
+              role="group"
+              aria-label={`${metric} bars. Use left and right arrow keys to inspect each day.`}
+              onFocus={() => setActive((i) => i ?? 6)}
+              onBlur={() => setActive(null)}
+              onMouseLeave={() => setActive(null)}
+              onKeyDown={(e) => {
+                const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+                if (e.key === "Home") { e.preventDefault(); setActive(0); }
+                else if (e.key === "End") { e.preventDefault(); setActive(6); }
+                else if (e.key === "Escape") setActive(null);
+                else if (step) { e.preventDefault(); setActive((i) => Math.min(6, Math.max(0, (i ?? 6) + step))); }
+              }}
+              className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+            <div className="h-48 w-full" role="img" aria-label={`${water ? "Water" : "Sleep"} over seven days. Daily goal ${goal}${unit}. ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%">
+                <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
+                  onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
                   <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
-                  <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={({ active, payload, label }) => {
-                    if (!active || !payload?.length) return null;
-                    const day = summary.days.find((row) => row.date === label);
-                    if (!day) return null;
-                    return <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground"><p className="text-muted-foreground">{shortDate(day.date)}</p><p className="mt-1 font-mono">{day.value === null ? "No log" : `${day.value}${unit}`} {day.met ? "· Goal met" : ""}</p></div>;
-                  }} />
+                  <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} />
                   <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion} animationDuration={350}>
-                    {summary.days.map((day) => <Cell key={day.date} fill={day.met ? color : mutedColor} />)}
+                    {summary.days.map((day, i) => (
+                      <Cell key={day.date} fill={day.met ? color : mutedColor}
+                        stroke={active === i ? "var(--foreground)" : "transparent"} strokeWidth={2}
+                        style={{ filter: active === i ? "var(--shadow-bar-focus)" : "none", transition: "filter 150ms, stroke 150ms" }} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer></div>
+            </div>
+            {activeDay && active !== null && (
+              <div role="status" aria-live="polite"
+                className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md"
+                style={{ left: `calc(35px + (100% - 37px) * ${(Math.min(5.6, Math.max(1.4, active + 0.5))) / 7})` }}>
+                <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
+                <p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} <span className="font-sans text-muted-foreground">/ {goal}{unit}</span></p>
+                <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
+              </div>
+            )}
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
