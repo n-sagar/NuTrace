@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { loadPrefs, savePrefs, clearSession, defaultPrefs, subscribePrefs, type Prefs } from "@/lib/prefs";
-import { loadDaily, saveDaily, timeToMidnight, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
+import { loadDaily, saveDaily, dailySnapshot, timeToMidnight, playClick, playPop, playDroplet, MAX_WATER_ML, SYNCED_SLEEP, type DailyState, type SleepQuality } from "@/lib/daily";
+import { CircadianPill } from "@/components/CircadianPill";
+import { WindDownDrawer } from "@/components/WindDownDrawer";
+import { MomentumShield } from "@/components/MomentumShield";
+import { recordMomentum } from "@/lib/momentum";
 import { ProfileModal } from "@/components/ProfileModal";
 import { WeeklyTrends } from "@/components/WeeklyTrends";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
@@ -46,6 +50,7 @@ function Dashboard() {
   const [d, setD] = useState<DailyState | null>(null);
   const [resetIn, setResetIn] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [windDownOpen, setWindDownOpen] = useState(false);
 
   useEffect(() => {
     setP(loadPrefs() ?? defaultPrefs());
@@ -55,6 +60,7 @@ function Dashboard() {
       setP(prefs ?? defaultPrefs());
       if (!prefs) {
         setProfileOpen(false);
+        setWindDownOpen(false);
         setD(loadDaily());
       }
     });
@@ -100,6 +106,7 @@ function Dashboard() {
   };
 
   const saveGoals = (next: Prefs) => {
+    recordMomentum(dailySnapshot(d), next);
     savePrefs(next);
     setP(next);
   };
@@ -127,6 +134,7 @@ function Dashboard() {
         <Button variant="plain" id="profile-trigger" aria-label="Open account profile" aria-haspopup="dialog" aria-expanded={profileOpen} onClick={() => setProfileOpen(true)} className="min-h-11 min-w-11 rounded-full text-2xl transition hover:scale-110">{p.avatar}</Button>
       </div>
       <p className="text-sm text-muted-foreground">Hey {p.name}, hope you're doing well</p>
+      <CircadianPill />
 
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
         <RefreshCw size={13} className="text-water" />
@@ -240,7 +248,12 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <Button id="wind-down-trigger" variant="plain" aria-haspopup="dialog" aria-expanded={windDownOpen} onClick={() => { playClick(); setWindDownOpen(true); }} className="flex h-auto min-h-14 w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 text-left">
+        <span className="flex items-center gap-2"><Moon size={18} className="text-sleep" />Evening wind-down</span><span className="text-xs text-muted-foreground">{d.windDownMinutes != null ? `${d.windDownMinutes} min · ${d.windDownState}` : "Log tonight"}</span>
+      </Button>
+      <MomentumShield />
       <WeeklyTrends daily={d} prefs={p} />
+      {windDownOpen && <WindDownDrawer daily={d} onSave={(patch) => update(patch, playClick)} onClose={() => setWindDownOpen(false)} />}
       {profileOpen && (
         <ProfileModal prefs={p} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
       )}

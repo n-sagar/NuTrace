@@ -19,39 +19,40 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   // Logout clears history along with preferences and daily data.
   useEffect(() => { setHistory(loadHistory()); }, [daily]);
   const water = mode === "water";
-  const unit = water ? "L" : "h";
-  const goal = water ? prefs.waterGoal / 1000 : prefs.sleepGoal;
+  const windDown = mode === "windDown";
+  const unit = water ? "L" : windDown ? "min" : "h";
+  const goal = water ? prefs.waterGoal / 1000 : windDown ? 0 : prefs.sleepGoal;
   const summary = summarizeWeek(history, dailySnapshot(daily), mode, goal);
   const color = water ? "var(--water)" : "var(--sleep)";
   const mutedColor = "var(--weekly-bar-muted)";
   const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
   const TrendIcon = change === null || change === 0 ? Minus : change > 0 ? ArrowUpRight : ArrowDownRight;
-  const ceiling = Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2;
+  const ceiling = Math.max(1, Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2);
   const first = summary.days[0];
   const last = summary.days[6];
-  const metric = water ? "Water" : "Sleep";
+  const metric = water ? "Water" : windDown ? "Wind-down" : "Sleep";
   const activeDay = active === null ? undefined : summary.days[active];
-  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}. ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
+  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of 7 evenings logged.` : `Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
       <p className="sr-only" role="status">{srSummary}</p>
       {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
-      <table className="sr-only">
-        <caption>{metric} log for the past 7 days, daily goal {goal}{unit}</caption>
+      <div className="sr-only"><table className="sr-only">
+        <caption>{metric} log for the past 7 days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
-          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">Goal</th></tr>
+          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th></tr>
         </thead>
         <tbody>
           {summary.days.map((day) => (
             <tr key={day.date}>
               <th scope="row">{dayLabel(day.date)}</th>
               <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
-              <td>{day.value === null ? "—" : day.met ? "Met" : "Not met"}</td>
+              <td>{day.value === null ? "—" : windDown ? "Logged" : day.met ? "Met" : "Not met"}</td>
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
@@ -59,12 +60,13 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
         </div>
         <span className="text-xs text-muted-foreground">Past 7 days</span>
       </div>
-      <Tabs value={mode} onValueChange={(value) => { if (value === "water" || value === "sleep") { playClick(); setMode(value); } }} className="mt-5">
-        <TabsList aria-label="Weekly metric" className="grid h-14 w-full grid-cols-2">
-          <TabsTrigger value="water" className="h-11 gap-2 data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
-          <TabsTrigger value="sleep" className="h-11 gap-2 data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
+      <Tabs value={mode} onValueChange={(value) => { if (value === "water" || value === "sleep" || value === "windDown") { playClick(); setMode(value); setActive(null); } }} className="mt-5">
+        <TabsList aria-label="Weekly metric" className="grid h-auto w-full grid-cols-3 gap-1">
+          <TabsTrigger value="water" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
+          <TabsTrigger value="sleep" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
+          <TabsTrigger value="windDown" className="h-11 text-xs data-[state=active]:text-sleep">Wind-down</TabsTrigger>
         </TabsList>
-        <TabsContent value={mode} className="mt-5" aria-label={`${water ? "Water" : "Sleep"} weekly summary`}>
+        <TabsContent value={mode} className="mt-5" aria-label={`${metric} weekly summary`}>
           <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
             <div className="grid grid-cols-2 gap-4">
               <div className="min-w-0">
@@ -77,9 +79,9 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 <p className="mt-1 text-xs text-muted-foreground">{summary.loggedDays} logged {summary.loggedDays === 1 ? "day" : "days"}</p>
               </div>
               <div className="min-w-0 border-l border-border pl-4">
-                <p className="flex items-center gap-1 text-xs text-muted-foreground"><Flame size={12} />Goal streak</p>
-                <p className="mt-1 font-mono text-2xl" >{summary.streak}<span className="ml-1 font-sans text-xs text-muted-foreground">{summary.streak === 1 ? "day" : "days"}</span></p>
-                <p className="mt-1 text-xs text-muted-foreground">{summary.metDays} of 7 goals met</p>
+                <p className="flex items-center gap-1 text-xs text-muted-foreground"><Flame size={12} />{windDown ? "Evenings logged" : "Goal streak"}</p>
+                <p className="mt-1 font-mono text-2xl" >{windDown ? summary.loggedDays : summary.streak}<span className="ml-1 font-sans text-xs text-muted-foreground">days</span></p>
+                <p className="mt-1 text-xs text-muted-foreground">{windDown ? "Past 7 evenings" : `${summary.metDays} of 7 goals met`}</p>
               </div>
             </div>
             <div
@@ -98,14 +100,14 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               }}
               className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-            <div className="h-48 w-full" role="img" aria-label={`${water ? "Water" : "Sleep"} over seven days. Daily goal ${goal}${unit}. ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${day.met ? ", goal met" : ""}`}`).join(". ")}`}>
+            <div className="h-48 w-full" role="img" aria-label={`${metric} over seven days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
                   <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
                   <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} />
-                  <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />
+                  {!windDown && <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />}
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion} animationDuration={350}>
                     {summary.days.map((day, i) => (
                       <Cell key={day.date} fill={day.met ? color : mutedColor}
@@ -121,15 +123,15 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md"
                 style={{ left: `calc(35px + (100% - 37px) * ${(Math.min(5.6, Math.max(1.4, active + 0.5))) / 7})` }}>
                 <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
-                <p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} <span className="font-sans text-muted-foreground">/ {goal}{unit}</span></p>
-                <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
+                <p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
+                <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : windDown ? "Logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
               </div>
             )}
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+            {!windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
               <span>Goal: <span className="font-mono text-foreground">{goal}{unit}</span></span>
-            </div>
+            </div>}
           </motion.div>
         </TabsContent>
       </Tabs>

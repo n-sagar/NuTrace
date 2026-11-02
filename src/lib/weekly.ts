@@ -1,5 +1,5 @@
-export type DaySnapshot = { date: string; waterMl: number; sleepHours: number | null };
-export type TrendMode = "water" | "sleep";
+export type DaySnapshot = { date: string; waterMl: number; sleepHours: number | null; windDownMinutes?: number | null };
+export type TrendMode = "water" | "sleep" | "windDown";
 export const HISTORY_KEY = "nutrace.history";
 const HISTORY_CHANGED = "nutrace:history-changed";
 
@@ -26,7 +26,8 @@ export function loadHistory(): DaySnapshot[] {
     return value.filter((day): day is DaySnapshot =>
       day && typeof day === "object" && typeof day.date === "string" &&
       /^\d{4}-\d{2}-\d{2}$/.test(day.date) && Number.isFinite(day.waterMl) && day.waterMl >= 0 &&
-      (day.sleepHours === null || (Number.isFinite(day.sleepHours) && day.sleepHours >= 0)));
+       (day.sleepHours === null || (Number.isFinite(day.sleepHours) && day.sleepHours >= 0)) &&
+       (day.windDownMinutes == null || (Number.isFinite(day.windDownMinutes) && day.windDownMinutes >= 0)));
   } catch { return []; }
 }
 
@@ -58,7 +59,7 @@ export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: 
   rows.set(today.date, today);
   const days = weekDates(now).map((date) => {
     const row = rows.get(date);
-    const value = mode === "water" ? row ? row.waterMl / 1000 : null : row?.sleepHours ?? null;
+    const value = mode === "water" ? row ? row.waterMl / 1000 : null : mode === "sleep" ? row?.sleepHours ?? null : row?.windDownMinutes ?? null;
     return { date, value, met: value !== null && value >= goal };
   });
   const logged = days.filter((day) => day.value !== null);
@@ -67,7 +68,7 @@ export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: 
   previousEnd.setDate(previousEnd.getDate() - 7);
   const previousValues = weekDates(previousEnd).flatMap((date) => {
     const row = rows.get(date);
-    const value = mode === "water" ? row ? row.waterMl / 1000 : null : row?.sleepHours ?? null;
+    const value = mode === "water" ? row ? row.waterMl / 1000 : null : mode === "sleep" ? row?.sleepHours ?? null : row?.windDownMinutes ?? null;
     return value === null ? [] : [value];
   });
   const previousAverage = previousValues.length ? previousValues.reduce((sum, value) => sum + value, 0) / previousValues.length : null;

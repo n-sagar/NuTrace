@@ -11,3 +11,6 @@
 - [x] Add screen-reader weekly summaries, verify 200–400% zoom reflow, and enforce reduced-motion fallbacks.
 - [x] Add hidden 7-day data tables for both charts and verify keyboard focus rings across dashboard and profile drawer.
 - [x] Center and constrain the account profile window; verify Close-first focus, Tab cycling, Escape and avatar focus return.
+- [x] Add accessible wind-down bottom drawer, local persistence and weekly chart data.
+- [x] Add geolocation-aware sunrise/sunset countdown with an honest local-time fallback.
+- [x] Add seven-day earned momentum protection and milestone badges; test and verify the dashboard flow.
