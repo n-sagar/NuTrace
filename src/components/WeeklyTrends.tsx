@@ -27,12 +27,12 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const mutedColor = "var(--weekly-bar-muted)";
   const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
   const TrendIcon = change === null || change === 0 ? Minus : change > 0 ? ArrowUpRight : ArrowDownRight;
-  const ceiling = Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2;
+  const ceiling = Math.max(1, Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2);
   const first = summary.days[0];
   const last = summary.days[6];
   const metric = water ? "Water" : windDown ? "Wind-down" : "Sleep";
   const activeDay = active === null ? undefined : summary.days[active];
-  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}. ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
+  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of 7 evenings logged.` : `Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
@@ -62,11 +62,11 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
       </div>
       <Tabs value={mode} onValueChange={(value) => { if (value === "water" || value === "sleep" || value === "windDown") { playClick(); setMode(value); setActive(null); } }} className="mt-5">
         <TabsList aria-label="Weekly metric" className="grid h-auto w-full grid-cols-3 gap-1">
-          <TabsTrigger value="water" className="h-11 gap-2 data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
-          <TabsTrigger value="sleep" className="h-11 gap-2 data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
+          <TabsTrigger value="water" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
+          <TabsTrigger value="sleep" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
           <TabsTrigger value="windDown" className="h-11 text-xs data-[state=active]:text-sleep">Wind-down</TabsTrigger>
         </TabsList>
-        <TabsContent value={mode} className="mt-5" aria-label={`${water ? "Water" : "Sleep"} weekly summary`}>
+        <TabsContent value={mode} className="mt-5" aria-label={`${metric} weekly summary`}>
           <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
             <div className="grid grid-cols-2 gap-4">
               <div className="min-w-0">
@@ -100,7 +100,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               }}
               className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-            <div className="h-48 w-full" role="img" aria-label={`${water ? "Water" : "Sleep"} over seven days. Daily goal ${goal}${unit}. ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${day.met ? ", goal met" : ""}`}`).join(". ")}`}>
+            <div className="h-48 w-full" role="img" aria-label={`${metric} over seven days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
