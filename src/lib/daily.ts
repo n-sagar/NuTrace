@@ -1,4 +1,6 @@
 import { localDateKey, recordDay, type DaySnapshot } from "@/lib/weekly";
+import { recordMomentum } from "@/lib/momentum";
+import { loadPrefs, defaultPrefs } from "@/lib/prefs";
 
 export type SleepQuality = "rested" | "okay" | "tired";
 export type SleepStages = { rem: number; core: number; deep: number; awake: number };
@@ -9,6 +11,8 @@ export type DailyState = {
   syncOn: boolean;
   sleepHours: number | null;
   sleepQuality: SleepQuality | null;
+  windDownMinutes?: number | null;
+  windDownState?: "calm" | "okay" | "wired" | null;
 };
 
 const KEY = "nutrace.daily";
@@ -36,6 +40,7 @@ export function loadDaily(): DailyState {
     if (!r) return fresh();
     const d = JSON.parse(r) as DailyState;
     recordDay(dailySnapshot(d));
+    recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
     return d.date === todayKey() ? d : { ...fresh(), syncOn: d.syncOn };
   } catch {
     return fresh();
@@ -45,10 +50,11 @@ export function loadDaily(): DailyState {
 export function saveDaily(d: DailyState) {
   localStorage.setItem(KEY, JSON.stringify(d));
   recordDay(dailySnapshot(d));
+  recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
 }
 
 export function dailySnapshot(d: DailyState): DaySnapshot {
-  return { date: d.date, waterMl: d.waterMl, sleepHours: d.syncOn ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : d.sleepHours };
+  return { date: d.date, waterMl: d.waterMl, sleepHours: d.syncOn ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : d.sleepHours, ...(d.windDownMinutes != null ? { windDownMinutes: d.windDownMinutes } : {}) };
 }
 
 /** "4h 12m" until next local midnight */

@@ -95,6 +95,8 @@
   --energy: oklch(0.82 0.13 90);
   --weekly-bar-muted: oklch(0.43 0.035 255);
   --trend-positive: oklch(0.76 0.15 155);
+  --circadian-glass: oklch(0.21 0.025 265 / 75%);
+  --radius-circadian: 20px;
   --welcome-ambient: radial-gradient(ellipse at 20% 20%, color-mix(in oklab, var(--water) 5%, transparent), transparent 65%), radial-gradient(ellipse at 90% 80%, color-mix(in oklab, var(--sleep) 5%, transparent), transparent 65%);
   --shadow-water-pulse: 0 0 18px color-mix(in oklab, var(--water) 55%, transparent);
   --shadow-bar-focus: drop-shadow(0 0 6px color-mix(in oklab, var(--foreground) 45%, transparent));
@@ -188,6 +190,10 @@
   }
   input::placeholder { color: var(--muted-foreground); opacity: 1; }
 }
+
+.circadian-glass { background: var(--circadian-glass); border-radius: var(--radius-circadian); backdrop-filter: blur(20px); }
+.wind-down-drawer { animation: wind-down-enter 250ms ease-out; }
+@keyframes wind-down-enter { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* Motion sensitivity: collapse CSS animations/transitions to near-instant;
    Framer Motion paths handle their own reduced-motion fade fallbacks. */
