@@ -38,7 +38,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
       <p className="sr-only" role="status">{srSummary}</p>
       {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
-      <div className="sr-only"><table>
+      <div className="sr-only"><table className="sr-only">
         <caption>{metric} log for the past 7 days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
           <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th></tr>
