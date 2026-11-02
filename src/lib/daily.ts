@@ -1,5 +1,5 @@
 import { localDateKey, recordDay, type DaySnapshot } from "@/lib/weekly";
-import { recordMomentum } from "@/lib/momentum";
+import { loadMomentum, recordMomentum } from "@/lib/momentum";
 import { loadPrefs, defaultPrefs } from "@/lib/prefs";
 
 export type SleepQuality = "rested" | "okay" | "tired";
@@ -39,8 +39,10 @@ export function loadDaily(): DailyState {
     const r = localStorage.getItem(KEY);
     if (!r) return fresh();
     const d = JSON.parse(r) as DailyState;
+    if (d.windDownMinutes != null && (!Number.isFinite(d.windDownMinutes) || d.windDownMinutes < 0)) d.windDownMinutes = null;
+    if (d.windDownState != null && !["calm", "okay", "wired"].includes(d.windDownState)) d.windDownState = null;
     recordDay(dailySnapshot(d));
-    recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
+    if (d.date === todayKey() || !loadMomentum().some((row) => row.date === d.date)) recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
     return d.date === todayKey() ? d : { ...fresh(), syncOn: d.syncOn };
   } catch {
     return fresh();
