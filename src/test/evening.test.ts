@@ -27,6 +27,10 @@ describe("Wind-down data flow", () => {
     expect(loadDaily().windDownMinutes ?? null).toBeNull();
     expect(loadHistory().find((row) => row.date === "2026-11-09")?.windDownMinutes).toBe(15);
   });
+  it("rejects negative stored wind-down minutes", () => {
+    localStorage.setItem("nutrace.daily", JSON.stringify({ ...loadDaily(), windDownMinutes: -30 }));
+    expect(loadDaily().windDownMinutes).toBeNull();
+  });
 });
 
 describe("7-Day Momentum Shield", () => {
@@ -58,6 +62,13 @@ describe("7-Day Momentum Shield", () => {
     expect(loadMomentum()).toHaveLength(7);
     expect(summarizeMomentum(loadMomentum()).milestones).toEqual([7]);
     clearSession(); expect(loadMomentum()).toEqual([]);
+  });
+  it("does not recalculate archived attainment using later profile goals", () => {
+    recordMomentum({ date: "2026-11-08", waterMl: 2000, sleepHours: 8 }, defaultPrefs());
+    localStorage.setItem("nutrace.daily", JSON.stringify({ ...loadDaily(), date: "2026-11-08", waterMl: 2000, sleepHours: 8 }));
+    localStorage.setItem("nutrace.prefs", JSON.stringify({ ...defaultPrefs(), waterGoal: 3000 }));
+    loadDaily();
+    expect(loadMomentum().find((row) => row.date === "2026-11-08")?.met).toBe(true);
   });
 });
 
