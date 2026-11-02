@@ -1,4 +1,4 @@
-import SunCalc from "suncalc";
+import { getTimes } from "suncalc";
 
 export type Coordinates = { latitude: number; longitude: number };
 export function nextSolarEvent(now: Date, coords: Coordinates | null) {
@@ -7,8 +7,9 @@ export function nextSolarEvent(now: Date, coords: Coordinates | null) {
     const day = new Date(now);
     day.setDate(day.getDate() + offset);
     if (coords) {
-      const times = SunCalc.getTimes(day, coords.latitude, coords.longitude);
-      events.push({ kind: "sunrise", at: times.sunrise }, { kind: "sunset", at: times.sunset });
+      const times = getTimes(day, coords.latitude, coords.longitude, 0, -day.getTimezoneOffset());
+      if (times.sunrise) events.push({ kind: "sunrise", at: times.sunrise });
+      if (times.sunset) events.push({ kind: "sunset", at: times.sunset });
     } else {
       const dawn = new Date(day); dawn.setHours(6, 0, 0, 0);
       const dusk = new Date(day); dusk.setHours(18, 0, 0, 0);

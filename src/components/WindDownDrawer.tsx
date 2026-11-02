@@ -16,7 +16,7 @@ export function WindDownDrawer({ daily, onSave, onClose }: { daily: DailyState; 
         <div className="pr-10"><DialogTitle className="flex items-center gap-2"><Moon size={20} className="text-sleep" />Evening wind-down</DialogTitle><DialogDescription className="mt-2">Tonight’s quiet time</DialogDescription></div>
         <fieldset><legend className="text-sm">Wind-down minutes</legend><div className="mt-3 flex flex-wrap gap-2">{[5, 15, 30, 60].map((n) => <Button key={n} variant="plain" aria-pressed={minutes === n} onClick={() => { playClick(); setMinutes(n); }} className={cn("min-h-11 rounded-full border px-4 font-mono text-sm", minutes === n ? "border-sleep bg-sleep/15 text-sleep" : "border-input text-muted-foreground")}>{n} min</Button>)}</div></fieldset>
         <fieldset><legend className="text-sm">How do you feel?</legend><div className="mt-3 flex flex-wrap gap-2">{(["calm", "okay", "wired"] as const).map((mood) => <Button key={mood} variant="plain" aria-pressed={state === mood} onClick={() => { playClick(); setState(mood); }} className={cn("min-h-11 flex-1 rounded-lg border px-3 capitalize", state === mood ? "border-sleep bg-sleep/15 text-sleep" : "border-input text-muted-foreground")}>{mood}</Button>)}</div></fieldset>
-        <Button disabled={!state} onClick={() => { onSave({ windDownMinutes: minutes, windDownState: state }); onClose(); }} className="min-h-11 bg-sleep text-primary-foreground hover:bg-sleep/90">Save wind-down</Button>
+        <Button disabled={!state} onClick={() => { if (!state) return; onSave({ windDownMinutes: minutes, windDownState: state }); onClose(); }} className="min-h-11 bg-sleep text-primary-foreground hover:bg-sleep/90">Save wind-down</Button>
       </DialogPrimitive.Content>
     </DialogPortal>
   </Dialog>;
