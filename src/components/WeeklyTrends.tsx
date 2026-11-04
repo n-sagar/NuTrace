@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, Droplet, Flame, Minus, Moon, TrendingUp }
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dailySnapshot, playClick, type DailyState } from "@/lib/daily";
-import { loadHistory, subscribeHistory, summarizeWeek, type TrendMode } from "@/lib/weekly";
+import { loadHistory, subscribeHistory, summarizeWeek, windDownInsight, type TrendMode } from "@/lib/weekly";
 import { type Prefs } from "@/lib/prefs";
 
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
@@ -23,6 +23,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const unit = water ? "L" : windDown ? "min" : "h";
   const goal = water ? prefs.waterGoal / 1000 : windDown ? 0 : prefs.sleepGoal;
   const summary = summarizeWeek(history, dailySnapshot(daily), mode, goal);
+  const insight = windDownInsight(history, dailySnapshot(daily));
   const color = water ? "var(--water)" : "var(--sleep)";
   const mutedColor = "var(--weekly-bar-muted)";
   const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
@@ -41,7 +42,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
       <div className="sr-only"><table className="sr-only">
         <caption>{metric} log for the past 7 days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
-          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th></tr>
+          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th>{windDown && <th scope="col">Feeling</th>}</tr>
         </thead>
         <tbody>
           {summary.days.map((day) => (
@@ -49,6 +50,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               <th scope="row">{dayLabel(day.date)}</th>
               <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
               <td>{day.value === null ? "—" : windDown ? "Logged" : day.met ? "Met" : "Not met"}</td>
+               {windDown && <td>{day.value === null ? "Not logged" : day.feeling ?? "Not recorded"}</td>}
             </tr>
           ))}
         </tbody>
@@ -125,6 +127,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
                 <p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
                 <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : windDown ? "Logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
+                 {windDown && activeDay.value !== null && <p className="mt-1 capitalize text-muted-foreground">Feeling: {activeDay.feeling ?? "not recorded"}</p>}
               </div>
             )}
             </div>
@@ -135,6 +138,17 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           </motion.div>
         </TabsContent>
       </Tabs>
+      <div className="mt-4 border-t border-border pt-4" aria-labelledby="trend-insight-heading">
+        <h3 id="trend-insight-heading" className="flex items-center gap-2 text-sm font-medium"><Moon size={14} className="text-sleep" />Wind-down & sleep</h3>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          {insight.differenceMinutes === null
+            ? "Not enough paired logs yet. A comparison needs at least two evenings with 15+ min and two shorter logged evenings, each followed by a sleep log."
+            : insight.differenceMinutes === 0
+              ? "Next-day logged sleep averaged the same after 15+ min of wind-down and shorter logged evenings."
+              : `After 15+ min of wind-down, next-day logged sleep averaged ${Math.abs(insight.differenceMinutes)} min ${insight.differenceMinutes > 0 ? "longer" : "shorter"} than after shorter logged evenings.`}
+        </p>
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Past 7 sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. {insight.differenceMinutes !== null ? "Association, not causation; duration is not sleep quality. " : ""}Simulated sync values are excluded.</p>
+      </div>
     </section>
   );
 }

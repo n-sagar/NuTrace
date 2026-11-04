@@ -14,5 +14,5 @@
 - [x] Add accessible wind-down bottom drawer, local persistence and weekly chart data.
 - [x] Add geolocation-aware sunrise/sunset countdown with an honest local-time fallback.
 - [x] Add seven-day earned momentum protection and milestone badges; test and verify the dashboard flow.
-- [ ] Add saved GPS/manual timezone location controls with clear source badges.
-- [ ] Archive wind-down feelings and show honest wind-down/sleep insights; verify reloads and chart flow.
+- [x] Add saved GPS/manual timezone location controls with clear source badges.
+- [x] Archive wind-down feelings and show honest wind-down/sleep insights; verify reloads and chart flow.
