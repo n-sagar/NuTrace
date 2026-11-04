@@ -29,7 +29,7 @@ export function loadHistory(): DaySnapshot[] {
       /^\d{4}-\d{2}-\d{2}$/.test(day.date) && Number.isFinite(day.waterMl) && day.waterMl >= 0 &&
        (day.sleepHours === null || (Number.isFinite(day.sleepHours) && day.sleepHours >= 0)) &&
        (day.windDownMinutes == null || (Number.isFinite(day.windDownMinutes) && day.windDownMinutes >= 0)))
-      .map((day) => ({ ...day, windDownState: day.windDownState && ["calm", "okay", "wired"].includes(day.windDownState) ? day.windDownState : null }));
+      .map((day) => day.windDownState == null ? day : { ...day, windDownState: ["calm", "okay", "wired"].includes(day.windDownState) ? day.windDownState : null });
   } catch { return []; }
 }
 
