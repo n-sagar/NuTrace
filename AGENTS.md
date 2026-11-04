@@ -17,6 +17,6 @@
 - Use local calendar dates for daily resets and weekly buckets so charts match the midnight countdown.
 
 - Use shared Button controls, Radix dialog focus management and a single root main landmark; expose selection states and keep readable text/focus colors in semantic tokens.
-- Store optional wind-down duration and mood in the shared daily state and archive duration in weekly snapshots; legacy rows without wind-down remain unlogged.
+- Store optional wind-down duration and mood in daily state and weekly snapshots; compare evenings to next-day manually logged sleep with sample counts, excluding simulated sync data, so insights do not imply causal or measured quality effects.
 - Use a separate durable date-keyed momentum ledger for daily water-and-sleep attainment so fourteen-day chart pruning cannot erase earned protection; historical attainment uses goals at logging, current-day goal edits update its entry, and missed days are never fabricated logs.
-- Calculate solar events with SunCalc only after hydration; request location on explicit user action, keep coordinates in memory, and label fixed local-time fallback estimates honestly.
+- Calculate solar events with SunCalc only after hydration; request GPS explicitly and persist validated device-local location preferences, using timezone-aware estimated times for manual labels without implying city geocoding.
