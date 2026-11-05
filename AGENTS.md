@@ -20,3 +20,5 @@
 - Store optional wind-down duration and mood in daily state and weekly snapshots; compare evenings to next-day manually logged sleep with sample counts, excluding simulated sync data, so insights do not imply causal or measured quality effects.
 - Use a separate durable date-keyed momentum ledger for daily water-and-sleep attainment so fourteen-day chart pruning cannot erase earned protection; historical attainment uses goals at logging, current-day goal edits update its entry, and missed days are never fabricated logs.
 - Calculate solar events with SunCalc only after hydration; request GPS explicitly and persist validated device-local location preferences, using timezone-aware estimated times for manual labels without implying city geocoding.
+- Centralize timezone aliases and conservative fuzzy matching in a browser-safe helper; unknown or ambiguous cities must not overwrite the selected timezone.
+- Derive chart ranges and next-day pair counts from retained local-day history; all-metric comparisons normalize each series to its selected-range peak and keep actual units in accessible details.

@@ -16,3 +16,6 @@
 - [x] Add seven-day earned momentum protection and milestone badges; test and verify the dashboard flow.
 - [x] Add saved GPS/manual timezone location controls with clear source badges.
 - [x] Archive wind-down feelings and show honest wind-down/sleep insights; verify reloads and chart flow.
+- [x] Add searchable timezones and safe fuzzy city matching.
+- [x] Add all-metric comparisons and 7/14/custom chart ranges within retained history.
+- [x] Add range-aware correlation sample counts and confidence labels; test and verify mobile flow.
