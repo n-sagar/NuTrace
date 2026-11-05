@@ -56,10 +56,10 @@ export function subscribeHistory(onChange: () => void): () => void {
   };
 }
 
-export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: TrendMode, goal: number, now = new Date()) {
+export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: TrendMode, goal: number, now = new Date(), selectedDates = weekDates(now)) {
   const rows = new Map(history.map((day) => [day.date, day]));
   rows.set(today.date, today);
-  const days = weekDates(now).map((date) => {
+  const days = selectedDates.map((date) => {
     const row = rows.get(date);
     const value = mode === "water" ? row ? row.waterMl / 1000 : null : mode === "sleep" ? row?.sleepHours ?? null : row?.windDownMinutes ?? null;
     return { date, value, feeling: row?.windDownState ?? null, met: value !== null && value >= goal };
@@ -67,8 +67,10 @@ export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: 
   const logged = days.filter((day) => day.value !== null);
   const average = logged.length ? logged.reduce((sum, day) => sum + (day.value ?? 0), 0) / logged.length : null;
   const previousEnd = new Date(now);
-  previousEnd.setDate(previousEnd.getDate() - 7);
-  const previousValues = weekDates(previousEnd).flatMap((date) => {
+  if (selectedDates[0]) previousEnd.setTime(new Date(`${selectedDates[0]}T12:00:00`).getTime());
+  previousEnd.setDate(previousEnd.getDate() - 1);
+  const retained = new Set(recentDates(14, now));
+  const previousValues = recentDates(selectedDates.length, previousEnd).filter((date) => retained.has(date)).flatMap((date) => {
     const row = rows.get(date);
     const value = mode === "water" ? row ? row.waterMl / 1000 : null : mode === "sleep" ? row?.sleepHours ?? null : row?.windDownMinutes ?? null;
     return value === null ? [] : [value];
@@ -87,12 +89,12 @@ export function summarizeWeek(history: DaySnapshot[], today: DaySnapshot, mode: 
 }
 
 /** Pair each evening with the following day's sleep, never the preceding night. */
-export function windDownInsight(history: DaySnapshot[], today: DaySnapshot, now = new Date()) {
+export function windDownInsight(history: DaySnapshot[], today: DaySnapshot, now = new Date(), selectedDates = weekDates(now)) {
   const rows = new Map(history.map((day) => [day.date, day]));
   rows.set(today.date, today);
   const longer: number[] = [];
   const shorter: number[] = [];
-  for (const date of weekDates(now)) {
+  for (const date of selectedDates) {
     const sleep = rows.get(date);
     if (sleep?.sleepHours == null || !Number.isFinite(sleep.sleepHours) || sleep.sleepHours < 0 || sleep.sleepSource === "demo-sync") continue;
     const eveningDate = new Date(`${date}T12:00:00`);

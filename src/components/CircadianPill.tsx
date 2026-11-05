@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LOCATION_KEY, loadLocation, nextSolarEvent, saveLocation, validTimezone, type LocationPreference } from "@/lib/circadian";
+import { TimezoneCombobox } from "@/components/TimezoneCombobox";
+import { timezoneForCity } from "@/lib/timezones";
 
 export function CircadianPill() {
   const [now, setNow] = useState<Date | null>(null);
@@ -62,9 +64,14 @@ export function CircadianPill() {
           if (!validTimezone(timezone.trim())) { setStatus("Enter a valid timezone, such as Europe/London."); return; }
           apply({ mode: "manual", city: city.trim(), timezone: timezone.trim() });
         }}>
-          <div><label htmlFor="circadian-city" className="text-xs">City (optional)</label><Input id="circadian-city" className="mt-1 min-h-11" value={city} maxLength={100} onChange={(e) => setCity(e.target.value)} placeholder="London" /></div>
-          <div><label htmlFor="circadian-timezone" className="text-xs">Timezone</label><Input id="circadian-timezone" className="mt-1 min-h-11" value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="Europe/London" required aria-describedby="timezone-note" /></div>
-          <p id="timezone-note" className="text-xs text-muted-foreground">City is a label. Manual times are 6am / 6pm estimates in this timezone, not calculated solar times.</p>
+          <div><label htmlFor="circadian-city" className="text-xs">City (optional)</label><Input id="circadian-city" className="mt-1 min-h-11" value={city} maxLength={100} onChange={(e) => {
+            const name = e.target.value; setCity(name);
+            const matched = timezoneForCity(name);
+            if (matched) { setTimezone(matched); setStatus(`Timezone matched to ${matched}.`); }
+            else setStatus(name.trim() ? "City not recognized yet. Your selected timezone is unchanged." : "");
+          }} placeholder="Los Angeles" /></div>
+          <div><label htmlFor="circadian-timezone" className="text-xs">Timezone</label><TimezoneCombobox value={timezone} onChange={(value) => { setTimezone(value); setStatus("Timezone selected."); }} /></div>
+          <p id="timezone-note" className="text-xs text-muted-foreground">Manual times are 6am / 6pm estimates in the selected timezone, not calculated solar times.</p>
           <Button type="submit" className="min-h-11">Save manual location</Button>
         </form>
         <p className="mt-2 text-xs text-muted-foreground" role="status">{status}</p>
