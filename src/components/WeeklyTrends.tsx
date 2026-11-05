@@ -1,38 +1,51 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight, Droplet, Flame, Minus, Moon, TrendingUp } from "lucide-react";
-import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, Cell, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dailySnapshot, playClick, type DailyState } from "@/lib/daily";
 import { loadHistory, subscribeHistory, summarizeWeek, windDownInsight, type TrendMode } from "@/lib/weekly";
 import { type Prefs } from "@/lib/prefs";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { comparisonRows, retainedDates, sampleConfidence, trendDates, type TrendRange } from "@/lib/trend-ranges";
 
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
 export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs }) {
-  const [mode, setMode] = useState<TrendMode>("water");
+  const [mode, setMode] = useState<TrendMode | "all">("water");
+  const [range, setRange] = useState<TrendRange>("7");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
   const [history, setHistory] = useState(loadHistory);
   const [active, setActive] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
+  useEffect(() => { const available = retainedDates(); setStart(available[0] ?? ""); setEnd(available[13] ?? ""); }, []);
   useEffect(() => subscribeHistory(() => setHistory(loadHistory())), []);
   // Logout clears history along with preferences and daily data.
   useEffect(() => { setHistory(loadHistory()); }, [daily]);
   const water = mode === "water";
   const windDown = mode === "windDown";
+  const all = mode === "all";
+  const dates = trendDates(range, start, end, new Date(`${daily.date}T12:00:00`));
+  const available = retainedDates(new Date(`${daily.date}T12:00:00`));
   const unit = water ? "L" : windDown ? "min" : "h";
   const goal = water ? prefs.waterGoal / 1000 : windDown ? 0 : prefs.sleepGoal;
-  const summary = summarizeWeek(history, dailySnapshot(daily), mode, goal);
-  const insight = windDownInsight(history, dailySnapshot(daily));
+  const summary = summarizeWeek(history, dailySnapshot(daily), all ? "water" : mode, goal, new Date(`${daily.date}T12:00:00`), dates);
+  const insight = windDownInsight(history, dailySnapshot(daily), new Date(`${daily.date}T12:00:00`), dates);
+  const overlay = comparisonRows(history, dailySnapshot(daily), dates);
+  const confidence = sampleConfidence(insight.longerCount, insight.shorterCount);
   const color = water ? "var(--water)" : "var(--sleep)";
   const mutedColor = "var(--weekly-bar-muted)";
   const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
   const TrendIcon = change === null || change === 0 ? Minus : change > 0 ? ArrowUpRight : ArrowDownRight;
   const ceiling = Math.max(1, Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2);
   const first = summary.days[0];
-  const last = summary.days[6];
+  const last = summary.days.at(-1);
   const metric = water ? "Water" : windDown ? "Wind-down" : "Sleep";
   const activeDay = active === null ? undefined : summary.days[active];
+  const activeOverlay = active === null ? undefined : overlay[active];
   const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of 7 evenings logged.` : `Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
