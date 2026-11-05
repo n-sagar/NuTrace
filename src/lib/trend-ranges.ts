@@ -18,7 +18,8 @@ export function comparisonRows(history: DaySnapshot[], today: DaySnapshot, dates
   });
   const peak = (key: "water" | "sleep" | "windDown") => Math.max(0, ...values.map((row) => row[key] ?? 0));
   const peaks = { water: peak("water"), sleep: peak("sleep"), windDown: peak("windDown") };
-  return values.map((row) => ({ ...row, waterRelative: row.water === null || peaks.water === 0 ? null : row.water / peaks.water * 100, sleepRelative: row.sleep === null || peaks.sleep === 0 ? null : row.sleep / peaks.sleep * 100, windDownRelative: row.windDown === null || peaks.windDown === 0 ? null : row.windDown / peaks.windDown * 100 }));
+  const relative = (value: number | null, peak: number) => value === null ? null : peak === 0 ? 0 : value / peak * 100;
+  return values.map((row) => ({ ...row, waterRelative: relative(row.water, peaks.water), sleepRelative: relative(row.sleep, peaks.sleep), windDownRelative: relative(row.windDown, peaks.windDown) }));
 }
 /** Descriptive sample coverage, not a statistical significance estimate. */
 export function sampleConfidence(longer: number, shorter: number) {

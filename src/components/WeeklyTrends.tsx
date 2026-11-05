@@ -48,7 +48,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const tickLabel = (date: string) => dates.length > 7 ? shortDate(date) : dayLabel(date);
   const activeDay = active === null ? undefined : summary.days[active];
   const activeOverlay = active === null ? undefined : overlay[active];
-  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of ${dates.length} evenings logged.` : `Goal met on ${summary.metDays} of ${dates.length} days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
+  const srSummary = `${range === "7" ? "Weekly" : "Range"} ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of ${dates.length} evenings logged.` : `Goal met on ${summary.metDays} of ${dates.length} days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? `Comparison with ${period} unavailable.` : `Compared with ${period}: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
     <section aria-labelledby="weekly-heading" className="min-w-0 rounded-2xl border border-border bg-card p-5">
@@ -91,7 +91,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           <TabsTrigger value="all" className="min-h-11 whitespace-normal px-1 text-xs">All Metrics</TabsTrigger>
           <TabsTrigger value="water" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
           <TabsTrigger value="sleep" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
-          <TabsTrigger value="windDown" className="h-11 text-xs data-[state=active]:text-sleep">Wind-down</TabsTrigger>
+          <TabsTrigger value="windDown" className="h-auto min-h-11 min-w-0 whitespace-normal px-1 text-xs data-[state=active]:text-sleep">Wind-down (Min)</TabsTrigger>
         </TabsList>
         <TabsContent value={mode} className="mt-5" aria-label={`${metric} weekly summary`}>
           <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
@@ -128,7 +128,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               }}
               className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-            <div className="h-48 w-full" role="img" aria-label={`${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
+            <div className="h-48 w-full" role="img" aria-label={all ? `All metrics over ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes; lines scaled independently to range peaks. Daily values in the data table.` : `${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
