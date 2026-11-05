@@ -46,22 +46,23 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const metric = water ? "Water" : windDown ? "Wind-down" : "Sleep";
   const activeDay = active === null ? undefined : summary.days[active];
   const activeOverlay = active === null ? undefined : overlay[active];
-  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of 7 evenings logged.` : `Goal met on ${summary.metDays} of 7 days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
+  const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of ${dates.length} evenings logged.` : `Goal met on ${summary.metDays} of ${dates.length} days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
     <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
-      <p className="sr-only" role="status">{srSummary}</p>
+      <p className="sr-only" role="status">{all ? `All metrics across ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes. Lines scaled to each metric’s range peak.` : srSummary}</p>
       {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
       <div className="sr-only"><table className="sr-only">
-        <caption>{metric} log for the past 7 days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
+        <caption>{all ? "All metrics" : metric} log for the past {dates.length} days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
-          <tr><th scope="col">Day</th><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th>{windDown && <th scope="col">Feeling</th>}</tr>
+          <tr><th scope="col">Day</th>{all && <><th scope="col">Water (L)</th><th scope="col">Sleep (h)</th><th scope="col">Wind-down (min)</th><th scope="col">Feeling</th></>}<th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th>{windDown && <th scope="col">Feeling</th>}</tr>
         </thead>
         <tbody>
-          {summary.days.map((day) => (
+          {summary.days.map((day, index) => (
             <tr key={day.date}>
               <th scope="row">{dayLabel(day.date)}</th>
-              <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
+              <>{all && <><td>{overlay[index]?.water ?? "Not logged"}</td><td>{overlay[index]?.sleep ?? "Not logged"}</td><td>{overlay[index]?.windDown ?? "Not logged"}</td><td>{overlay[index]?.feeling ?? "Not recorded"}</td></>}</>
+               <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
               <td>{day.value === null ? "—" : windDown ? "Logged" : day.met ? "Met" : "Not met"}</td>
                {windDown && <td>{day.value === null ? "Not logged" : day.feeling ?? "Not recorded"}</td>}
             </tr>
@@ -73,51 +74,69 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
           <p className="mt-1 text-xs text-muted-foreground">{first && shortDate(first.date)} – {last && shortDate(last.date)}</p>
         </div>
-        <span className="text-xs text-muted-foreground">Past 7 days</span>
+        <Select value={range} onValueChange={(value) => { if (value === "7" || value === "14" || value === "custom") { setRange(value); setActive(null); playClick(); } }}>
+          <SelectTrigger aria-label="Trend date range" className="min-h-11 w-36 shrink-0 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="7">Past 7 Days</SelectItem><SelectItem value="14">Past 14 Days</SelectItem><SelectItem value="custom">Custom Range</SelectItem></SelectContent>
+        </Select>
       </div>
-      <Tabs value={mode} onValueChange={(value) => { if (value === "water" || value === "sleep" || value === "windDown") { playClick(); setMode(value); setActive(null); } }} className="mt-5">
-        <TabsList aria-label="Weekly metric" className="grid h-auto w-full grid-cols-3 gap-1">
+      {range === "custom" && <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0"><label htmlFor="trend-start" className="text-xs">Start date</label><Input id="trend-start" type="date" value={start} min={available[0]} max={end || available[13]} onChange={(e) => { setStart(e.target.value); setActive(null); }} className="mt-1 min-h-11 min-w-0 w-full" /></div>
+        <div className="min-w-0"><label htmlFor="trend-end" className="text-xs">End date</label><Input id="trend-end" type="date" value={end} min={start || available[0]} max={available[13]} onChange={(e) => { setEnd(e.target.value); setActive(null); }} className="mt-1 min-h-11 min-w-0 w-full" /></div>
+      </div>}
+      {range !== "7" && <p className="mt-2 text-xs text-muted-foreground">14-day retained history · missing logs stay empty.</p>}
+      {dates.length === 0 && <p role="alert" className="mt-2 text-xs text-destructive">Choose an ordered range within the past 14 days.</p>}
+      <Tabs value={mode} onValueChange={(value) => { if (value === "all" || value === "water" || value === "sleep" || value === "windDown") { playClick(); setMode(value); setActive(null); } }} className="mt-5">
+        <TabsList aria-label="Weekly metric" className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
+          <TabsTrigger value="all" className="min-h-11 whitespace-normal px-1 text-xs">All Metrics</TabsTrigger>
           <TabsTrigger value="water" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-water"><Droplet size={15} />Water (L)</TabsTrigger>
           <TabsTrigger value="sleep" className="h-auto min-h-11 min-w-0 flex-wrap gap-1 whitespace-normal px-1 text-xs data-[state=active]:text-sleep"><Moon size={15} />Sleep (Hours)</TabsTrigger>
           <TabsTrigger value="windDown" className="h-11 text-xs data-[state=active]:text-sleep">Wind-down</TabsTrigger>
         </TabsList>
         <TabsContent value={mode} className="mt-5" aria-label={`${metric} weekly summary`}>
           <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
-            <div className="grid grid-cols-2 gap-4">
+            {!all && <div className="grid grid-cols-2 gap-4">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Weekly average</p>
                 <p className="mt-1 font-mono text-2xl" >{summary.average === null ? "—" : summary.average.toFixed(1)}<span className="ml-1 font-sans text-xs text-muted-foreground">{unit} / day</span></p>
                <p  title={`Averages use logged days only: ${summary.loggedDays} this week, ${summary.previousLoggedDays} last week.`} className={`mt-1 flex flex-wrap items-center gap-1 text-[11px] ${change !== null && change > 0 ? "text-trend-positive" : "text-muted-foreground"}`}>
                  {change !== null && <TrendIcon size={13} aria-hidden="true" />}
-                 {change === null ? "Comparison unavailable" : `${change > 0 ? "+" : ""}${change}% vs last week`}
+                 {change === null ? "Comparison unavailable" : `${change > 0 ? "+" : ""}${change}% vs ${range === "7" ? "last week" : "prior period"}`}
                </p>
                 <p className="mt-1 text-xs text-muted-foreground">{summary.loggedDays} logged {summary.loggedDays === 1 ? "day" : "days"}</p>
               </div>
               <div className="min-w-0 border-l border-border pl-4">
                 <p className="flex items-center gap-1 text-xs text-muted-foreground"><Flame size={12} />{windDown ? "Evenings logged" : "Goal streak"}</p>
                 <p className="mt-1 font-mono text-2xl" >{windDown ? summary.loggedDays : summary.streak}<span className="ml-1 font-sans text-xs text-muted-foreground">days</span></p>
-                <p className="mt-1 text-xs text-muted-foreground">{windDown ? "Past 7 evenings" : `${summary.metDays} of 7 goals met`}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{windDown ? `Past ${dates.length} evenings` : `${summary.metDays} of ${dates.length} goals met`}</p>
               </div>
-            </div>
+            </div>}
+            {all && <p className="text-xs text-muted-foreground">Relative to each metric’s range peak (%) · actual values in daily details.</p>}
             <div
               tabIndex={0}
               role="group"
               aria-label={`${metric} bars. Use left and right arrow keys to inspect each day.`}
-              onFocus={() => setActive((i) => i ?? 6)}
+              onFocus={() => setActive((i) => i ?? dates.length - 1)}
               onBlur={() => setActive(null)}
               onMouseLeave={() => setActive(null)}
               onKeyDown={(e) => {
                 const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
                 if (e.key === "Home") { e.preventDefault(); setActive(0); }
-                else if (e.key === "End") { e.preventDefault(); setActive(6); }
+                else if (e.key === "End") { e.preventDefault(); setActive(dates.length - 1); }
                 else if (e.key === "Escape") setActive(null);
-                else if (step) { e.preventDefault(); setActive((i) => Math.min(6, Math.max(0, (i ?? 6) + step))); }
+                else if (step) { e.preventDefault(); setActive((i) => Math.min(dates.length - 1, Math.max(0, (i ?? dates.length - 1) + step))); }
               }}
               className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
             >
-            <div className="h-48 w-full" role="img" aria-label={`${metric} over seven days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
+            <div className="h-48 w-full" role="img" aria-label={`${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
+                {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
+                  <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={() => null} />
+                  <Line name="Water (L)" dataKey="waterRelative" stroke="var(--water)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
+                  <Line name="Sleep (h)" dataKey="sleepRelative" stroke="var(--sleep)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
+                  <Line name="Wind-down (min)" dataKey="windDownRelative" stroke="var(--energy)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
+                </LineChart> : <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
                   <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
@@ -130,21 +149,22 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                         style={{ filter: active === i ? "var(--shadow-bar-focus)" : "none", transition: "filter 150ms, stroke 150ms" }} />
                     ))}
                   </Bar>
-                </BarChart>
+                </BarChart>}
               </ResponsiveContainer></div>
             </div>
             {activeDay && active !== null && (
               <div role="status" aria-live="polite"
                 className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md"
-                style={{ left: `calc(35px + (100% - 37px) * ${(Math.min(5.6, Math.max(1.4, active + 0.5))) / 7})` }}>
+                style={{ left: `calc(35px + (100% - 37px) * ${(Math.min(dates.length - 1.4, Math.max(1.4, active + 0.5))) / Math.max(1, dates.length)})` }}>
                 <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
-                <p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
+                {all && activeOverlay ? <div className="mt-1 space-y-1"><p className="text-water">Water: {activeOverlay.water ?? "Not logged"}{activeOverlay.water !== null && `L · ${activeOverlay.water >= prefs.waterGoal / 1000 ? "Goal met" : "Below goal"}`}</p><p className="text-sleep">Sleep: {activeOverlay.sleep ?? "Not logged"}{activeOverlay.sleep !== null && `h · ${activeOverlay.sleep >= prefs.sleepGoal ? "Goal met" : "Below goal"}`}</p><p className="text-energy">Wind-down: {activeOverlay.windDown ?? "Not logged"}{activeOverlay.windDown !== null && `min · ${activeOverlay.feeling ?? "Feeling not recorded"}`}</p></div> : <><p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
                 <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : windDown ? "Logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
-                 {windDown && activeDay.value !== null && <p className="mt-1 capitalize text-muted-foreground">Feeling: {activeDay.feeling ?? "not recorded"}</p>}
+                 {windDown && activeDay.value !== null && <p className="mt-1 capitalize text-muted-foreground">Feeling: {activeDay.feeling ?? "not recorded"}</p>}</>}
               </div>
             )}
             </div>
-            {!windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+            {all && <div className="mt-4 flex flex-wrap gap-3 text-xs">{[["Water (L)", "var(--water)"], ["Sleep (h)", "var(--sleep)"], ["Wind-down (min)", "var(--energy)"]].map(([label, fill]) => <span key={label} className="flex items-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 8 8" className="size-2"><circle cx="4" cy="4" r="4" fill={fill} /></svg>{label}</span>)}</div>}
+            {!all && !windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
               <span>Goal: <span className="font-mono text-foreground">{goal}{unit}</span></span>
             </div>}
@@ -153,6 +173,8 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
       </Tabs>
       <div className="mt-4 border-t border-border pt-4" aria-labelledby="trend-insight-heading">
         <h3 id="trend-insight-heading" className="flex items-center gap-2 text-sm font-medium"><Moon size={14} className="text-sleep" />Wind-down & sleep</h3>
+        <p className={`mt-2 text-xs ${confidence.startsWith("Moderate") ? "text-trend-positive" : "text-muted-foreground"}`}>{confidence}</p>
+        <p className="mt-2 text-xs text-muted-foreground">Based on {insight.longerCount} logged evenings with 15+ min wind-down and {insight.shorterCount} shorter logged evenings, each paired with next-day sleep.</p>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
           {insight.differenceMinutes === null
             ? "Not enough paired logs yet. A comparison needs at least two evenings with 15+ min and two shorter logged evenings, each followed by a sleep log."
@@ -160,7 +182,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               ? "Next-day logged sleep averaged the same after 15+ min of wind-down and shorter logged evenings."
               : `After 15+ min of wind-down, next-day logged sleep averaged ${Math.abs(insight.differenceMinutes)} min ${insight.differenceMinutes > 0 ? "longer" : "shorter"} than after shorter logged evenings.`}
         </p>
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Past 7 sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. {insight.differenceMinutes !== null ? "Association, not causation; duration is not sleep quality. " : ""}Simulated sync values are excluded.</p>
+        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Selected {dates.length} sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. {insight.differenceMinutes !== null ? "Association, not causation; duration is not sleep quality. Confidence describes sample coverage, not statistical significance. " : ""}Simulated sync values are excluded.</p>
       </div>
     </section>
   );
