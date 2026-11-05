@@ -27,6 +27,9 @@ describe("Trend ranges", () => {
     const rows = comparisonRows([{ ...today, date: "2026-11-04", waterMl: 1250, sleepHours: 4, windDownMinutes: 30 }], today, ["2026-11-03", "2026-11-04", "2026-11-05"]);
     expect(rows[0]?.sleepRelative).toBeNull(); expect(rows[1]).toMatchObject({ water: 1.25, waterRelative: 50, sleep: 4, sleepRelative: 50, windDown: 30, windDownRelative: 100 });
   });
+  it("keeps explicitly logged zero values visible in comparisons", () => {
+    expect(comparisonRows([], { ...today, waterMl: 0, windDownMinutes: 0 }, [today.date])[0]).toMatchObject({ waterRelative: 0, windDownRelative: 0 });
+  });
   it("counts only pairs whose sleep day is in the active range", () => {
     const history = [{ ...today, date: "2026-11-03", windDownMinutes: 30 }, { ...today, date: "2026-11-04", windDownMinutes: 5 }];
     expect(windDownInsight(history, today, now, ["2026-11-04"])).toMatchObject({ longerCount: 1, shorterCount: 0, differenceMinutes: null });
