@@ -43,33 +43,34 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
   const ceiling = Math.max(1, Math.ceil(Math.max(goal, ...summary.days.map((day) => day.value ?? 0)) * 1.25 * 2) / 2);
   const first = summary.days[0];
   const last = summary.days.at(-1);
-  const metric = water ? "Water" : windDown ? "Wind-down" : "Sleep";
+  const metric = all ? "All metrics" : water ? "Water" : windDown ? "Wind-down" : "Sleep";
+  const period = range === "7" ? "last week" : "the prior period";
+  const tickLabel = (date: string) => dates.length > 7 ? shortDate(date) : dayLabel(date);
   const activeDay = active === null ? undefined : summary.days[active];
   const activeOverlay = active === null ? undefined : overlay[active];
   const srSummary = `Weekly ${metric} average: ${summary.average === null ? "not available" : `${summary.average.toFixed(1)}${unit} per day`} across ${summary.loggedDays} logged ${summary.loggedDays === 1 ? "day" : "days"}. ${windDown ? `${summary.loggedDays} of ${dates.length} evenings logged.` : `Goal met on ${summary.metDays} of ${dates.length} days. Goal streak: ${summary.streak} ${summary.streak === 1 ? "day" : "days"}.`} ${change === null ? "Comparison with last week unavailable." : `Compared with last week: ${change > 0 ? "up" : change < 0 ? "down" : "unchanged"}${change === 0 ? "" : ` ${Math.abs(change)} percent`}.`}`;
 
   return (
-    <section aria-labelledby="weekly-heading" className="rounded-2xl border border-border bg-card p-5">
+    <section aria-labelledby="weekly-heading" className="min-w-0 rounded-2xl border border-border bg-card p-5">
       <p className="sr-only" role="status">{all ? `All metrics across ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes. Lines scaled to each metric’s range peak.` : srSummary}</p>
       {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
       <div className="sr-only"><table className="sr-only">
-        <caption>{all ? "All metrics" : metric} log for the past {dates.length} days{windDown ? "" : `, daily goal ${goal}${unit}`}</caption>
+        <caption>{metric} log for the past {dates.length} days{windDown || all ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
-          <tr><th scope="col">Day</th>{all && <><th scope="col">Water (L)</th><th scope="col">Sleep (h)</th><th scope="col">Wind-down (min)</th><th scope="col">Feeling</th></>}<th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th>{windDown && <th scope="col">Feeling</th>}</tr>
+          <tr><th scope="col">Day</th>{all ? <><th scope="col">Water (L)</th><th scope="col">Water goal</th><th scope="col">Sleep (h)</th><th scope="col">Sleep goal</th><th scope="col">Wind-down (min)</th><th scope="col">Feeling</th></> : <><th scope="col">{metric}</th><th scope="col">{windDown ? "Status" : "Goal"}</th>{windDown && <th scope="col">Feeling</th>}</>}</tr>
         </thead>
         <tbody>
           {summary.days.map((day, index) => (
             <tr key={day.date}>
-              <th scope="row">{dayLabel(day.date)}</th>
-              <>{all && <><td>{overlay[index]?.water ?? "Not logged"}</td><td>{overlay[index]?.sleep ?? "Not logged"}</td><td>{overlay[index]?.windDown ?? "Not logged"}</td><td>{overlay[index]?.feeling ?? "Not recorded"}</td></>}</>
-               <td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
+              <th scope="row">{dayLabel(day.date)}, {shortDate(day.date)}</th>
+              {all ? <><td>{overlay[index]?.water ?? "Not logged"}</td><td>{overlay[index]?.water == null ? "—" : (overlay[index]?.water ?? 0) >= prefs.waterGoal / 1000 ? "Met" : "Not met"}</td><td>{overlay[index]?.sleep ?? "Not logged"}</td><td>{overlay[index]?.sleep == null ? "—" : (overlay[index]?.sleep ?? 0) >= prefs.sleepGoal ? "Met" : "Not met"}</td><td>{overlay[index]?.windDown ?? "Not logged"}</td><td>{overlay[index]?.feeling ?? "Not recorded"}</td></> : <><td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
               <td>{day.value === null ? "—" : windDown ? "Logged" : day.met ? "Met" : "Not met"}</td>
-               {windDown && <td>{day.value === null ? "Not logged" : day.feeling ?? "Not recorded"}</td>}
+               {windDown && <td>{day.value === null ? "Not logged" : day.feeling ?? "Not recorded"}</td>}</>}
             </tr>
           ))}
         </tbody>
       </table></div>
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
           <p className="mt-1 text-xs text-muted-foreground">{first && shortDate(first.date)} – {last && shortDate(last.date)}</p>
@@ -96,9 +97,9 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           <motion.div key={mode} initial={{ opacity: 0, y: reducedMotion ? 0 : 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0.15 : 0.22 }}>
             {!all && <div className="grid grid-cols-2 gap-4">
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Weekly average</p>
+                <p className="text-xs text-muted-foreground">{range === "7" ? "Weekly average" : "Range average"}</p>
                 <p className="mt-1 font-mono text-2xl" >{summary.average === null ? "—" : summary.average.toFixed(1)}<span className="ml-1 font-sans text-xs text-muted-foreground">{unit} / day</span></p>
-               <p  title={`Averages use logged days only: ${summary.loggedDays} this week, ${summary.previousLoggedDays} last week.`} className={`mt-1 flex flex-wrap items-center gap-1 text-[11px] ${change !== null && change > 0 ? "text-trend-positive" : "text-muted-foreground"}`}>
+               <p  title={`Averages use logged days only: ${summary.loggedDays} selected, ${summary.previousLoggedDays} in ${period}.`} className={`mt-1 flex flex-wrap items-center gap-1 text-[11px] ${change !== null && change > 0 ? "text-trend-positive" : "text-muted-foreground"}`}>
                  {change !== null && <TrendIcon size={13} aria-hidden="true" />}
                  {change === null ? "Comparison unavailable" : `${change > 0 ? "+" : ""}${change}% vs ${range === "7" ? "last week" : "prior period"}`}
                </p>
@@ -114,7 +115,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             <div
               tabIndex={0}
               role="group"
-              aria-label={`${metric} bars. Use left and right arrow keys to inspect each day.`}
+              aria-label={`${metric} ${all ? "comparison lines" : "bars"}. Use left and right arrow keys to inspect each day.`}
               onFocus={() => setActive((i) => i ?? dates.length - 1)}
               onBlur={() => setActive(null)}
               onMouseLeave={() => setActive(null)}
@@ -130,7 +131,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             <div className="h-48 w-full" role="img" aria-label={`${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
-                  <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip content={() => null} />
                   <Line name="Water (L)" dataKey="waterRelative" stroke="var(--water)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
@@ -138,7 +139,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                   <Line name="Wind-down (min)" dataKey="windDownRelative" stroke="var(--energy)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
                 </LineChart> : <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
-                  <XAxis dataKey="date" tickFormatter={dayLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
+                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
                   <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
                   <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} />
                   {!windDown && <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />}
@@ -154,8 +155,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             </div>
             {activeDay && active !== null && (
               <div role="status" aria-live="polite"
-                className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md"
-                style={{ left: `calc(35px + (100% - 37px) * ${(Math.min(dates.length - 1.4, Math.max(1.4, active + 0.5))) / Math.max(1, dates.length)})` }}>
+                className="pointer-events-none absolute left-1/2 top-0 z-10 w-max max-w-full -translate-x-1/2 -translate-y-full break-words rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
                 <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
                 {all && activeOverlay ? <div className="mt-1 space-y-1"><p className="text-water">Water: {activeOverlay.water ?? "Not logged"}{activeOverlay.water !== null && `L · ${activeOverlay.water >= prefs.waterGoal / 1000 ? "Goal met" : "Below goal"}`}</p><p className="text-sleep">Sleep: {activeOverlay.sleep ?? "Not logged"}{activeOverlay.sleep !== null && `h · ${activeOverlay.sleep >= prefs.sleepGoal ? "Goal met" : "Below goal"}`}</p><p className="text-energy">Wind-down: {activeOverlay.windDown ?? "Not logged"}{activeOverlay.windDown !== null && `min · ${activeOverlay.feeling ?? "Feeling not recorded"}`}</p></div> : <><p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
                 <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : windDown ? "Logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
