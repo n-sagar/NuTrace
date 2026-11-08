@@ -126,14 +126,14 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 else if (e.key === "Escape") setActive(null);
                 else if (step) { e.preventDefault(); setActive((i) => Math.min(dates.length - 1, Math.max(0, (i ?? dates.length - 1) + step))); }
               }}
-              className="relative mt-5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
+              className="relative mt-6 rounded-lg pt-2 focus-visible:outline-2 focus-visible:outline-offset-4"
             >
             <div className="h-48 w-full" role="img" aria-label={all ? `All metrics over ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes; lines scaled independently to range peaks. Daily values in the data table.` : `${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={() => null} />
+                  <Tooltip content={() => null} allowEscapeViewBox={{ x: false, y: false }} />
                   <Line name="Water (L)" dataKey="waterRelative" stroke="var(--water)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
                   <Line name="Sleep (h)" dataKey="sleepRelative" stroke="var(--sleep)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
                   <Line name="Wind-down (min)" dataKey="windDownRelative" stroke="var(--energy)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
@@ -141,7 +141,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
                   <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
                   <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
-                  <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} />
+                  <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} allowEscapeViewBox={{ x: false, y: false }} />
                   {!windDown && <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />}
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion} animationDuration={350}>
                     {summary.days.map((day, i) => (
@@ -155,7 +155,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             </div>
             {activeDay && active !== null && (
               <div role="status" aria-live="polite"
-                className="pointer-events-none absolute left-1/2 top-0 z-10 w-max max-w-full -translate-x-1/2 -translate-y-full break-words rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                className="pointer-events-none absolute left-1/2 top-1 z-10 w-max max-w-full -translate-x-1/2 break-words rounded-lg border border-border bg-popover/95 px-3 py-2 text-xs text-popover-foreground shadow-md">
                 <p className="text-muted-foreground">{dayLabel(activeDay.date)}, {shortDate(activeDay.date)}</p>
                 {all && activeOverlay ? <div className="mt-1 space-y-1"><p className="text-water">Water: {activeOverlay.water ?? "Not logged"}{activeOverlay.water !== null && `L · ${activeOverlay.water >= prefs.waterGoal / 1000 ? "Goal met" : "Below goal"}`}</p><p className="text-sleep">Sleep: {activeOverlay.sleep ?? "Not logged"}{activeOverlay.sleep !== null && `h · ${activeOverlay.sleep >= prefs.sleepGoal ? "Goal met" : "Below goal"}`}</p><p className="text-energy">Wind-down: {activeOverlay.windDown ?? "Not logged"}{activeOverlay.windDown !== null && `min · ${activeOverlay.feeling ?? "Feeling not recorded"}`}</p></div> : <><p className="mt-1 font-mono">{activeDay.value === null ? "No log" : `${activeDay.value}${unit}`} {!windDown && <span className="font-sans text-muted-foreground">/ {goal}{unit}</span>}</p>
                 <p className={activeDay.met ? "mt-1 text-trend-positive" : "mt-1 text-muted-foreground"}>{activeDay.value === null ? "Not logged" : windDown ? "Logged" : activeDay.met ? "Goal met" : "Below goal"}</p>
