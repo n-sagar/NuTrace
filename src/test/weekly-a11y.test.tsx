@@ -54,4 +54,23 @@ describe("WeeklyTrends screen-reader summary", () => {
     expect(within(table).getByRole("cell", { name: "8h" })).toBeInTheDocument();
     expect(within(table).getByRole("cell", { name: "Met" })).toBeInTheDocument();
   });
+
+  it("shows the selected day's breakdown below the weekly average when a bar is focused", () => {
+    const today = localDateKey();
+    recordDay({ date: today, waterMl: 2500, sleepHours: 8 });
+    render(<WeeklyTrends daily={{ ...daily, waterMl: 2500 }} prefs={prefs} />);
+    expect(screen.getByText(/Tap, hover or focus a bar/)).toBeInTheDocument();
+    fireEvent.focus(screen.getByRole("group", { name: /Water bars/ }));
+    const readout = screen.getByText(/^Selected:/);
+    expect(readout).toHaveTextContent("2.5L / 2L (Goal met)");
+  });
+
+  it("renders the wind-down insight empty state as a card with paired-night progress", () => {
+    render(<WeeklyTrends daily={daily} prefs={prefs} />);
+    expect(screen.getByText("Not enough paired logs yet")).toBeInTheDocument();
+    const bars = screen.getAllByRole("progressbar");
+    expect(bars).toHaveLength(2);
+    expect(bars[0]).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getAllByText("0 / 2 paired nights logged")).toHaveLength(2);
+  });
 });
