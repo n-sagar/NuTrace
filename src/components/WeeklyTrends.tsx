@@ -111,6 +111,11 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
                 <p className="mt-1 text-xs text-muted-foreground">{windDown ? `Past ${dates.length} evenings` : `${summary.metDays} of ${dates.length} goals met`}</p>
               </div>
             </div>}
+            {!all && <p role="status" aria-live="polite" className="mt-3 text-xs font-medium text-muted-foreground">
+              {activeDay
+                ? `Selected: ${dayLabel(activeDay.date)}, ${shortDate(activeDay.date)} • ${activeDay.value === null ? "Not logged" : `${activeDay.value}${unit}${windDown ? "" : ` / ${goal}${unit}`}`}${activeDay.value === null ? "" : windDown ? " (Logged)" : activeDay.met ? " (Goal met)" : " (Below goal)"}`
+                : "Tap, hover or focus a bar to see a day’s breakdown."}
+            </p>}
             {all && <p className="text-xs text-muted-foreground">Relative to each metric’s range peak (%) · actual values in daily details.</p>}
             <div
               tabIndex={0}
@@ -164,7 +169,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             )}
             </div>
             {all && <div className="mt-4 flex flex-wrap gap-3 text-xs">{[["Water (L)", "var(--water)"], ["Sleep (h)", "var(--sleep)"], ["Wind-down (min)", "var(--energy)"]].map(([label, fill]) => <span key={label} className="flex items-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 8 8" className="size-2"><circle cx="4" cy="4" r="4" fill={fill} /></svg>{label}</span>)}</div>}
-            {!all && !windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+            {!all && !windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs font-medium text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
               <span>Goal: <span className="font-mono text-foreground">{goal}{unit}</span></span>
             </div>}
@@ -173,16 +178,37 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
       </Tabs>
       <div className="mt-4 border-t border-border pt-4" aria-labelledby="trend-insight-heading">
         <h3 id="trend-insight-heading" className="flex items-center gap-2 text-sm font-medium"><Moon size={14} className="text-sleep" />Wind-down & sleep</h3>
-        <p className={`mt-2 text-xs ${confidence.startsWith("Moderate") ? "text-trend-positive" : "text-muted-foreground"}`}>{confidence}</p>
-        <p className="mt-2 text-xs text-muted-foreground">Based on {insight.longerCount} logged evenings with 15+ min wind-down and {insight.shorterCount} shorter logged evenings, each paired with next-day sleep.</p>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          {insight.differenceMinutes === null
-            ? "Not enough paired logs yet. A comparison needs at least two evenings with 15+ min and two shorter logged evenings, each followed by a sleep log."
-            : insight.differenceMinutes === 0
-              ? "Next-day logged sleep averaged the same after 15+ min of wind-down and shorter logged evenings."
-              : `After 15+ min of wind-down, next-day logged sleep averaged ${Math.abs(insight.differenceMinutes)} min ${insight.differenceMinutes > 0 ? "longer" : "shorter"} than after shorter logged evenings.`}
-        </p>
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Selected {dates.length} sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. {insight.differenceMinutes !== null ? "Association, not causation; duration is not sleep quality. Confidence describes sample coverage, not statistical significance. " : ""}Simulated sync values are excluded.</p>
+        {insight.differenceMinutes === null ? (
+          <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
+            <p className="text-xs font-medium">Not enough paired logs yet</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">A comparison needs at least two evenings with 15+ min wind-down and two shorter logged evenings, each followed by a next-day sleep log.</p>
+            <div className="mt-3 space-y-2.5">
+              {([["15+ min wind-down evenings", insight.longerCount], ["Shorter logged evenings", insight.shorterCount]] as const).map(([label, count]) => (
+                <div key={label}>
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-mono font-medium">{Math.min(count, 2)} / 2 paired nights logged</span>
+                  </div>
+                  <div role="progressbar" aria-label={`${label}: ${Math.min(count, 2)} of 2 paired nights logged`} aria-valuemin={0} aria-valuemax={2} aria-valuenow={Math.min(count, 2)} className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-sleep transition-[width] duration-300" style={{ width: `${Math.min(count, 2) * 50}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Simulated sync values are excluded.</p>
+          </div>
+        ) : (
+          <>
+            <p className={`mt-2 text-xs ${confidence.startsWith("Moderate") ? "text-trend-positive" : "text-muted-foreground"}`}>{confidence}</p>
+            <p className="mt-2 text-xs text-muted-foreground">Based on {insight.longerCount} logged evenings with 15+ min wind-down and {insight.shorterCount} shorter logged evenings, each paired with next-day sleep.</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {insight.differenceMinutes === 0
+                ? "Next-day logged sleep averaged the same after 15+ min of wind-down and shorter logged evenings."
+                : `After 15+ min of wind-down, next-day logged sleep averaged ${Math.abs(insight.differenceMinutes)} min ${insight.differenceMinutes > 0 ? "longer" : "shorter"} than after shorter logged evenings.`}
+            </p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Selected {dates.length} sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. Association, not causation; duration is not sleep quality. Confidence describes sample coverage, not statistical significance. Simulated sync values are excluded.</p>
+          </>
+        )}
       </div>
     </section>
   );
