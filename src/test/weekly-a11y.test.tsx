@@ -71,7 +71,7 @@ describe("WeeklyTrends screen-reader summary", () => {
     const bars = screen.getAllByRole("progressbar");
     expect(bars).toHaveLength(2);
     expect(bars[0]).toHaveAttribute("aria-valuenow", "0");
-    expect(screen.getAllByText("0 / 2 paired nights logged")).toHaveLength(2);
+    for (const bar of bars) expect(bar).toHaveAttribute("aria-valuetext", "0 of 2 paired nights logged");
   });
 
   it("updates longer-evening paired-night progress from zero to one to two using saved logs", () => {
