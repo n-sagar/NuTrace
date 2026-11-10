@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { WeeklyTrends } from "@/components/WeeklyTrends";
 import { localDateKey, recordDay } from "@/lib/weekly";
@@ -71,6 +71,26 @@ describe("WeeklyTrends screen-reader summary", () => {
     const bars = screen.getAllByRole("progressbar");
     expect(bars).toHaveLength(2);
     expect(bars[0]).toHaveAttribute("aria-valuenow", "0");
-    expect(screen.getAllByText("0 / 2 paired nights logged")).toHaveLength(2);
+    for (const bar of bars) expect(bar).toHaveAttribute("aria-valuetext", "0 of 2 paired nights logged");
+  });
+
+  it("updates longer-evening paired-night progress from zero to one to two using saved logs", () => {
+    const date = (offset: number) => {
+      const day = new Date();
+      day.setDate(day.getDate() + offset);
+      return localDateKey(day);
+    };
+    render(<WeeklyTrends daily={daily} prefs={prefs} />);
+    const ring = screen.getByRole("progressbar", { name: "15+ min wind-down evenings" });
+    expect(ring).toHaveAttribute("aria-valuenow", "0");
+    act(() => recordDay({ date: date(-4), waterMl: 0, sleepHours: null, windDownMinutes: 15 }));
+    // An evening alone is not a paired night.
+    expect(ring).toHaveAttribute("aria-valuenow", "0");
+    act(() => recordDay({ date: date(-3), waterMl: 0, sleepHours: 8, windDownMinutes: 30 }));
+    expect(ring).toHaveAttribute("aria-valuenow", "1");
+    expect(screen.getByText("1 / 2", { exact: false })).toHaveTextContent("1 / 2 paired nights logged");
+    act(() => recordDay({ date: date(-2), waterMl: 0, sleepHours: 8.5 }));
+    expect(ring).toHaveAttribute("aria-valuenow", "2");
+    expect(screen.getByRole("progressbar", { name: "Shorter logged evenings" })).toHaveAttribute("aria-valuenow", "0");
   });
 });

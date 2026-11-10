@@ -9,6 +9,7 @@ import { type Prefs } from "@/lib/prefs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { comparisonRows, retainedDates, sampleConfidence, trendDates, type TrendRange } from "@/lib/trend-ranges";
+import { PairedNightProgress } from "@/components/PairedNightProgress";
 
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -182,23 +183,12 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
             <p className="text-xs font-medium">Not enough paired logs yet</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">A comparison needs at least two evenings with 15+ min wind-down and two shorter logged evenings, each followed by a next-day sleep log.</p>
-            <div className="mt-3 space-y-2.5">
-              {([["15+ min wind-down evenings", insight.longerCount], ["Shorter logged evenings", insight.shorterCount]] as const).map(([label, count]) => (
-                <div key={label}>
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
-                    <span className="text-muted-foreground">{label}</span>
-                    <span className="font-mono font-medium">{Math.min(count, 2)} / 2 paired nights logged</span>
-                  </div>
-                  <div role="progressbar" aria-label={`${label}: ${Math.min(count, 2)} of 2 paired nights logged`} aria-valuemin={0} aria-valuemax={2} aria-valuenow={Math.min(count, 2)} className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-sleep transition-[width] duration-300" style={{ width: `${Math.min(count, 2) * 50}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <PairedNightProgress longerCount={insight.longerCount} shorterCount={insight.shorterCount} />
             <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Simulated sync values are excluded.</p>
           </div>
         ) : (
           <>
+            <PairedNightProgress longerCount={insight.longerCount} shorterCount={insight.shorterCount} />
             <p className={`mt-2 text-xs ${confidence.startsWith("Moderate") ? "text-trend-positive" : "text-muted-foreground"}`}>{confidence}</p>
             <p className="mt-2 text-xs text-muted-foreground">Based on {insight.longerCount} logged evenings with 15+ min wind-down and {insight.shorterCount} shorter logged evenings, each paired with next-day sleep.</p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
