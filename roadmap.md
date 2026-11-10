@@ -18,4 +18,6 @@
 - [x] Archive wind-down feelings and show honest wind-down/sleep insights; verify reloads and chart flow.
 - [x] Add searchable timezones and safe fuzzy city matching.
 - [x] Add all-metric comparisons and 7/14/custom chart ranges within retained history.
-- [x] Add range-aware correlation sample counts and confidence labels; test and verify mobile flow.- [x] Add selected-day readout, styled wind-down empty-state card with paired-night progress, and medium-weight legend.
+- [x] Add range-aware correlation sample counts and confidence labels; test and verify mobile flow.
+- [x] Add selected-day readout, styled wind-down empty-state card with paired-night progress, and medium-weight legend.
+- [ ] Replace paired-night bars with animated, data-connected SVG rings; verify live updates and mobile layout.
