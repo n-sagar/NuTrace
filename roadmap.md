@@ -20,4 +20,4 @@
 - [x] Add all-metric comparisons and 7/14/custom chart ranges within retained history.
 - [x] Add range-aware correlation sample counts and confidence labels; test and verify mobile flow.
 - [x] Add selected-day readout, styled wind-down empty-state card with paired-night progress, and medium-weight legend.
-- [ ] Replace paired-night bars with animated, data-connected SVG rings; verify live updates and mobile layout.
+- [x] Replace paired-night bars with animated, data-connected SVG rings; verify live updates and mobile layout.
