@@ -21,3 +21,5 @@
 - [x] Add range-aware correlation sample counts and confidence labels; test and verify mobile flow.
 - [x] Add selected-day readout, styled wind-down empty-state card with paired-night progress, and medium-weight legend.
 - [x] Replace paired-night bars with animated, data-connected SVG rings; verify live updates and mobile layout.
+- [ ] Add a three-preset water row and verify totals, percentage, animation and the daily cap.
+- [ ] Audit dashboard chart text contrast, add explicit axis/data units, and verify mobile readability.
