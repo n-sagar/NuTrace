@@ -7,7 +7,7 @@ export function QuickAddButton({ label, disabled, onAdd }: { label: string; disa
   const reduced = useReducedMotion();
   const [pulse, setPulse] = useState(0);
   return (
-    <motion.div className="relative" whileTap={{ scale: disabled || reduced ? 1 : 0.92 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>
+    <motion.div className="relative min-w-0 flex-1" whileTap={{ scale: disabled || reduced ? 1 : 0.92 }} transition={{ type: "spring", stiffness: 500, damping: 18 }}>
       <AnimatePresence>
         {pulse > 0 && (
           <motion.span
@@ -21,7 +21,7 @@ export function QuickAddButton({ label, disabled, onAdd }: { label: string; disa
           />
         )}
       </AnimatePresence>
-      <Button variant="plain" disabled={disabled} onClick={() => { onAdd(); setPulse((n) => n + 1); }} className="h-auto min-h-11 rounded-full border border-water bg-water/15 px-5 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">{label}</Button>
+      <Button variant="plain" disabled={disabled} onClick={() => { onAdd(); setPulse((n) => n + 1); }} className="h-auto min-h-11 w-full rounded-full border border-water bg-water/15 px-2 py-2 font-mono text-sm text-water transition hover:bg-water/25 disabled:opacity-40">{label}</Button>
     </motion.div>
   );
 }

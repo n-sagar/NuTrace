@@ -2,6 +2,7 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Droplet, Moon, Minus, Plus, Watch, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { loadPrefs, savePrefs, clearSession, defaultPrefs, subscribePrefs, type Prefs } from "@/lib/prefs";
@@ -46,6 +47,7 @@ const STAGE_META = [
 
 function Dashboard() {
   const nav = useNavigate();
+  const reducedMotion = useReducedMotion();
   const [p, setP] = useState<Prefs | null>(null);
   const [d, setD] = useState<DailyState | null>(null);
   const [resetIn, setResetIn] = useState("");
@@ -157,14 +159,17 @@ function Dashboard() {
         <div className="relative mx-auto my-4 grid size-52 place-items-center">
           <svg aria-hidden="true" viewBox="0 0 200 200" className="absolute inset-0 -rotate-90">
             <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border)" strokeWidth="14" />
-            <circle cx="100" cy="100" r="80" fill="none" stroke="var(--water)" strokeWidth="14" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} className="transition-all" />
+            <motion.circle cx="100" cy="100" r="80" fill="none" stroke="var(--water)" strokeWidth="14" strokeLinecap="round" strokeDasharray={C} initial={false} animate={{ strokeDashoffset: C * (1 - pct) }} transition={{ duration: reducedMotion ? 0 : 0.45, ease: "easeOut" }} />
           </svg>
           <div className="text-center"><div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{(d.waterMl / 1000).toFixed(2)}L of {p.waterGoal / 1000}L goal</div><div aria-hidden="true" className="text-4xl tabular-nums"><AnimatedNumber value={d.waterMl / 1000} format={(n) => `${n.toFixed(2)}L`} /></div><div aria-hidden="true" className="text-sm text-muted-foreground tabular-nums">/ <AnimatedNumber value={p.waterGoal / 1000} format={(n) => `${+n.toFixed(2)}L`} /> Goal · <AnimatedNumber value={Math.round(pct * 100)} format={(n) => `${Math.round(n)}%`} /></div></div>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground active:scale-95"><Minus size={16} /></Button>
+        <div className="flex items-center justify-center gap-2">
           <QuickAddButton label="+250ml" disabled={d.waterMl >= MAX_WATER_ML} onAdd={() => addWater(250)} />
           <QuickAddButton label="+500ml" disabled={d.waterMl >= MAX_WATER_ML} onAdd={() => addWater(500)} />
+          <QuickAddButton label="+1L" disabled={d.waterMl >= MAX_WATER_ML} onAdd={() => addWater(1000)} />
+        </div>
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <Button variant="plain" aria-label="Remove 250ml" onClick={() => update({ waterMl: Math.max(0, d.waterMl - 250) }, playDroplet)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground active:scale-95"><Minus size={16} /></Button>
           <Button variant="plain" aria-label="Add 250ml" disabled={d.waterMl >= MAX_WATER_ML} onClick={() => addWater(250)} className="grid size-11 place-items-center rounded-full border border-input text-muted-foreground transition hover:text-foreground disabled:opacity-40"><Plus size={16} /></Button>
         </div>
       </div>

@@ -64,7 +64,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
           {summary.days.map((day, index) => (
             <tr key={day.date}>
               <th scope="row">{dayLabel(day.date)}, {shortDate(day.date)}</th>
-              {all ? <><td>{overlay[index]?.water ?? "Not logged"}</td><td>{overlay[index]?.water == null ? "—" : (overlay[index]?.water ?? 0) >= prefs.waterGoal / 1000 ? "Met" : "Not met"}</td><td>{overlay[index]?.sleep ?? "Not logged"}</td><td>{overlay[index]?.sleep == null ? "—" : (overlay[index]?.sleep ?? 0) >= prefs.sleepGoal ? "Met" : "Not met"}</td><td>{overlay[index]?.windDown ?? "Not logged"}</td><td>{overlay[index]?.feeling ?? "Not recorded"}</td></> : <><td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
+              {all ? <><td>{overlay[index]?.water == null ? "Not logged" : `${overlay[index]?.water}L`}</td><td>{overlay[index]?.water == null ? "—" : (overlay[index]?.water ?? 0) >= prefs.waterGoal / 1000 ? "Met" : "Not met"}</td><td>{overlay[index]?.sleep == null ? "Not logged" : `${overlay[index]?.sleep}h`}</td><td>{overlay[index]?.sleep == null ? "—" : (overlay[index]?.sleep ?? 0) >= prefs.sleepGoal ? "Met" : "Not met"}</td><td>{overlay[index]?.windDown == null ? "Not logged" : `${overlay[index]?.windDown}min`}</td><td>{overlay[index]?.feeling ?? "Not recorded"}</td></> : <><td>{day.value === null ? "Not logged" : `${day.value}${unit}`}</td>
               <td>{day.value === null ? "—" : windDown ? "Logged" : day.met ? "Met" : "Not met"}</td>
                {windDown && <td>{day.value === null ? "Not logged" : day.feeling ?? "Not recorded"}</td>}</>}
             </tr>
@@ -136,17 +136,17 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
             >
             <div className="h-48 w-full" role="img" aria-label={all ? `All metrics over ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes; lines scaled independently to range peaks. Daily values in the data table.` : `${metric} over ${dates.length === 7 ? "seven" : dates.length} days. ${windDown ? "Wind-down minutes logged." : `Daily goal ${goal}${unit}.`} ${summary.days.map((day) => `${dayLabel(day.date)}: ${day.value === null ? "not logged" : `${day.value}${unit}${!windDown && day.met ? ", goal met" : ""}`}`).join(". ")}`}>
               <div aria-hidden="true" className="h-full w-full"><ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
-                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} />
+                {all ? <LineChart data={overlay} margin={{ top: 16, right: 2, left: 0, bottom: 0 }} onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
+                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis width={60} domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip content={() => null} allowEscapeViewBox={{ x: false, y: false }} />
                   <Line name="Water (L)" dataKey="waterRelative" stroke="var(--water)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
                   <Line name="Sleep (h)" dataKey="sleepRelative" stroke="var(--sleep)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
                   <Line name="Wind-down (min)" dataKey="windDownRelative" stroke="var(--energy)" strokeWidth={2} connectNulls={false} isAnimationActive={!reducedMotion} />
-                </LineChart> : <BarChart data={summary.days} margin={{ top: 16, right: 2, left: -25, bottom: 0 }} barCategoryGap="28%"
+                </LineChart> : <BarChart data={summary.days} margin={{ top: 16, right: 2, left: 0, bottom: 0 }} barCategoryGap="28%"
                   onMouseMove={(state) => { const i = state?.activeTooltipIndex; if (typeof i === "number") setActive(i); }}>
-                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} dy={5} />
-                  <YAxis domain={[0, ceiling]} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} tickCount={4} />
+                  <XAxis dataKey="date" tickFormatter={tickLabel} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} dy={5} />
+                  <YAxis width={60} domain={[0, ceiling]} tickFormatter={(value) => `${value}${unit}`} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} tickCount={4} />
                   <Tooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={() => null} allowEscapeViewBox={{ x: false, y: false }} />
                   {!windDown && <ReferenceLine y={goal} stroke="var(--muted-foreground)" strokeDasharray="3 4" />}
                   <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={!reducedMotion} animationDuration={350}>
@@ -169,7 +169,7 @@ export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs
               </div>
             )}
             </div>
-            {all && <div className="mt-4 flex flex-wrap gap-3 text-xs">{[["Water (L)", "var(--water)"], ["Sleep (h)", "var(--sleep)"], ["Wind-down (min)", "var(--energy)"]].map(([label, fill]) => <span key={label} className="flex items-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 8 8" className="size-2"><circle cx="4" cy="4" r="4" fill={fill} /></svg>{label}</span>)}</div>}
+            {all && <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs font-medium text-muted-foreground">{[["Water (L)", "var(--water)"], ["Sleep (h)", "var(--sleep)"], ["Wind-down (min)", "var(--energy)"]].map(([label, fill]) => <span key={label} className="flex items-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={fill} /></svg>{label}</span>)}</div>}
             {!all && !windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs font-medium text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
               <span>Goal: <span className="font-mono text-foreground">{goal}{unit}</span></span>
