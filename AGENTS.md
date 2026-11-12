@@ -24,3 +24,4 @@
 - Derive chart ranges and next-day pair counts from retained local-day history; all-metric comparisons normalize each series to its selected-range peak and keep actual units in accessible details.
 - Render paired-night counters and animated SVG rings through one shared presentation component using insight counts; this keeps both states consistent without inventing pairs or duplicating analytics state.
 - Format chart Y-axis ticks with the active metric's unit (percent for normalized comparisons) and reserve axis width; this prevents ambiguous or clipped labels.
+- Keep populated-demo fixtures and edits in separate in-memory dashboard state, passing history and momentum explicitly to views; demo switching must never write to or replace live habit/profile storage.
