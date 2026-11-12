@@ -93,4 +93,26 @@ describe("WeeklyTrends screen-reader summary", () => {
     expect(ring).toHaveAttribute("aria-valuenow", "2");
     expect(screen.getByRole("progressbar", { name: "Shorter logged evenings" })).toHaveAttribute("aria-valuenow", "0");
   });
+
+  it("shows the wind-down insight as a plain headline with one supporting line and no statistical jargon", () => {
+    const date = (offset: number) => {
+      const day = new Date();
+      day.setDate(day.getDate() + offset);
+      return localDateKey(day);
+    };
+    // Three long wind-down nights each followed by 8h sleep, two shorter nights each followed by 6.75h.
+    recordDay({ date: date(-7), waterMl: 0, sleepHours: null, windDownMinutes: 20 });
+    recordDay({ date: date(-6), waterMl: 0, sleepHours: 8, windDownMinutes: 20 });
+    recordDay({ date: date(-5), waterMl: 0, sleepHours: 8, windDownMinutes: 20 });
+    recordDay({ date: date(-4), waterMl: 0, sleepHours: 8, windDownMinutes: 5 });
+    recordDay({ date: date(-3), waterMl: 0, sleepHours: 6.75, windDownMinutes: 5 });
+    recordDay({ date: date(-2), waterMl: 0, sleepHours: 6.75, windDownMinutes: 5 });
+    render(<WeeklyTrends daily={daily} prefs={prefs} />);
+    expect(screen.getByText("You average +75 min more sleep on nights with a 15+ min wind-down.")).toBeInTheDocument();
+    expect(screen.getByText("Based on 3 long wind-down nights vs. 2 shorter nights (early trend — keep logging to refine).")).toBeInTheDocument();
+    expect(screen.getByText("Simulated sync values excluded.")).toBeInTheDocument();
+    expect(screen.queryByText(/Association, not causation/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/not statistical significance/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Low confidence/)).not.toBeInTheDocument();
+  });
 });
