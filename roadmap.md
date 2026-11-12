@@ -23,3 +23,4 @@
 - [x] Replace paired-night bars with animated, data-connected SVG rings; verify live updates and mobile layout.
 - [x] Add a three-preset water row and verify totals, percentage, animation and the daily cap.
 - [x] Audit dashboard chart text contrast, add explicit axis/data units, and verify mobile readability.
+- [x] Add isolated Live User / Populated Demo switching with seven-day logs and unlocked paired-night insights; verify live data restoration.

@@ -1,5 +1,5 @@
 export type WindDownFeeling = "calm" | "okay" | "wired";
-export type DaySnapshot = { date: string; waterMl: number; sleepHours: number | null; sleepSource?: "manual" | "demo-sync"; windDownMinutes?: number | null; windDownState?: WindDownFeeling | null };
+export type DaySnapshot = { date: string; waterMl: number; sleepHours: number | null; sleepSource?: "manual" | "demo-sync" | "populated-demo"; windDownMinutes?: number | null; windDownState?: WindDownFeeling | null };
 export type TrendMode = "water" | "sleep" | "windDown";
 export const HISTORY_KEY = "nutrace.history";
 const HISTORY_CHANGED = "nutrace:history-changed";

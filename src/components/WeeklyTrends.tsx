@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, Droplet, Flame, Minus, Moon, TrendingUp }
 import { Bar, BarChart, Cell, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dailySnapshot, playClick, type DailyState } from "@/lib/daily";
-import { loadHistory, subscribeHistory, summarizeWeek, windDownInsight, type TrendMode } from "@/lib/weekly";
+import { loadHistory, subscribeHistory, summarizeWeek, windDownInsight, type DaySnapshot, type TrendMode } from "@/lib/weekly";
 import { type Prefs } from "@/lib/prefs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,12 +14,13 @@ import { PairedNightProgress } from "@/components/PairedNightProgress";
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
-export function WeeklyTrends({ daily, prefs }: { daily: DailyState; prefs: Prefs }) {
+export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailyState; prefs: Prefs; historyOverride?: DaySnapshot[] | undefined }) {
   const [mode, setMode] = useState<TrendMode | "all">("water");
   const [range, setRange] = useState<TrendRange>("7");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
-  const [history, setHistory] = useState(loadHistory);
+  const [storedHistory, setHistory] = useState(loadHistory);
+  const history = historyOverride ?? storedHistory;
   const [active, setActive] = useState<number | null>(null);
   const reducedMotion = useReducedMotion();
   useEffect(() => { const available = retainedDates(); setStart(available[0] ?? ""); setEnd(available[13] ?? ""); }, []);

@@ -17,6 +17,7 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { QuickAddButton } from "@/components/QuickAddButton";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { createDemoData } from "@/lib/demo";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -48,8 +49,9 @@ const STAGE_META = [
 function Dashboard() {
   const nav = useNavigate();
   const reducedMotion = useReducedMotion();
-  const [p, setP] = useState<Prefs | null>(null);
-  const [d, setD] = useState<DailyState | null>(null);
+  const [livePrefs, setP] = useState<Prefs | null>(null);
+  const [liveDaily, setD] = useState<DailyState | null>(null);
+  const [demo, setDemo] = useState<ReturnType<typeof createDemoData> | null>(null);
   const [resetIn, setResetIn] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const [windDownOpen, setWindDownOpen] = useState(false);
@@ -85,10 +87,23 @@ function Dashboard() {
     };
   }, []);
 
+  const p = demo?.prefs ?? livePrefs;
+  const d = demo?.daily ?? liveDaily;
   if (!p || !d) return null;
+
+  const switchMode = (populated: boolean) => {
+    playClick();
+    setProfileOpen(false);
+    setWindDownOpen(false);
+    setDemo((current) => populated ? current ?? createDemoData() : null);
+  };
 
   const update = (patch: Partial<DailyState>, sound = playPop) => {
     sound();
+    if (demo) {
+      setDemo((current) => current ? { ...current, daily: { ...current.daily, ...patch } } : current);
+      return;
+    }
     setD((cur) => {
       if (!cur) return cur;
       const next = { ...cur, ...patch };
@@ -108,12 +123,17 @@ function Dashboard() {
   };
 
   const saveGoals = (next: Prefs) => {
+    if (demo) {
+      setDemo((current) => current ? { ...current, prefs: next } : current);
+      return;
+    }
     recordMomentum(dailySnapshot(d), next);
     savePrefs(next);
     setP(next);
   };
 
   const logout = () => {
+    if (demo) { switchMode(false); return; }
     clearSession();
     nav({ to: "/" });
   };
@@ -135,6 +155,12 @@ function Dashboard() {
         <h1 className="font-mono text-xl">NuTrace</h1>
         <Button variant="plain" id="profile-trigger" aria-label="Open account profile" aria-haspopup="dialog" aria-expanded={profileOpen} onClick={() => setProfileOpen(true)} className="min-h-11 min-w-11 rounded-full text-2xl transition hover:scale-110">{p.avatar}</Button>
       </div>
+      <div role="group" aria-label="Dashboard data mode" className="grid grid-cols-2 gap-1 rounded-full border border-border bg-muted/40 p-1">
+        {([false, true] as const).map((populated) => <Button key={String(populated)} variant="plain" aria-pressed={Boolean(demo) === populated} onClick={() => switchMode(populated)} className={cn("min-h-11 rounded-full px-3 text-xs font-medium transition", Boolean(demo) === populated ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+          {populated ? "Populated Demo" : "Live User"}
+        </Button>)}
+      </div>
+      {demo && <p role="status" className="text-xs text-muted-foreground">Sample habit data · changes here won’t affect your live logs.</p>}
       <p className="text-sm text-muted-foreground">Hey {p.name}, hope you're doing well</p>
       <CircadianPill />
 
@@ -256,8 +282,8 @@ function Dashboard() {
       <Button id="wind-down-trigger" variant="plain" aria-haspopup="dialog" aria-expanded={windDownOpen} onClick={() => { playClick(); setWindDownOpen(true); }} className="flex h-auto min-h-14 w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 text-left">
         <span className="flex items-center gap-2"><Moon size={18} className="text-sleep" />Evening wind-down</span><span className="text-xs text-muted-foreground">{d.windDownMinutes != null ? `${d.windDownMinutes} min · ${d.windDownState}` : "Log tonight"}</span>
       </Button>
-      <MomentumShield />
-      <WeeklyTrends daily={d} prefs={p} />
+       <MomentumShield rows={demo ? [...demo.history.filter((row) => row.date !== d.date), dailySnapshot(d)].map((row) => ({ date: row.date, met: row.waterMl >= p.waterGoal && (row.sleepHours ?? 0) >= p.sleepGoal })) : undefined} />
+       <WeeklyTrends key={demo ? "demo" : "live"} daily={d} prefs={p} historyOverride={demo?.history} />
       {windDownOpen && <WindDownDrawer daily={d} onSave={(patch) => update(patch, playClick)} onClose={() => setWindDownOpen(false)} />}
       {profileOpen && (
         <ProfileModal prefs={p} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
