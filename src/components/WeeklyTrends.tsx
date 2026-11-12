@@ -38,6 +38,12 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
   const insight = windDownInsight(history, dailySnapshot(daily), new Date(`${daily.date}T12:00:00`), dates);
   const overlay = comparisonRows(history, dailySnapshot(daily), dates);
   const confidence = sampleConfidence(insight.longerCount, insight.shorterCount);
+  const trendNote = confidence.startsWith("Moderate") ? "steady trend — keep logging to refine" : "early trend — keep logging to refine";
+  const windDownHeadline = insight.differenceMinutes === null ? "" : insight.differenceMinutes === 0
+    ? "You average the same sleep on nights with a 15+ min wind-down."
+    : insight.differenceMinutes > 0
+      ? `You average +${insight.differenceMinutes} min more sleep on nights with a 15+ min wind-down.`
+      : `You average ${Math.abs(insight.differenceMinutes)} min less sleep on nights with a 15+ min wind-down.`;
   const color = water ? "var(--water)" : "var(--sleep)";
   const mutedColor = "var(--weekly-bar-muted)";
   const change = summary.changePercent === null ? null : Math.round(summary.changePercent);
@@ -185,19 +191,14 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
             <p className="text-xs font-medium">Not enough paired logs yet</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">A comparison needs at least two evenings with 15+ min wind-down and two shorter logged evenings, each followed by a next-day sleep log.</p>
             <PairedNightProgress longerCount={insight.longerCount} shorterCount={insight.shorterCount} />
-            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Simulated sync values are excluded.</p>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Simulated sync values excluded.</p>
           </div>
         ) : (
           <>
             <PairedNightProgress longerCount={insight.longerCount} shorterCount={insight.shorterCount} />
-            <p className={`mt-2 text-xs ${confidence.startsWith("Moderate") ? "text-trend-positive" : "text-muted-foreground"}`}>{confidence}</p>
-            <p className="mt-2 text-xs text-muted-foreground">Based on {insight.longerCount} logged evenings with 15+ min wind-down and {insight.shorterCount} shorter logged evenings, each paired with next-day sleep.</p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              {insight.differenceMinutes === 0
-                ? "Next-day logged sleep averaged the same after 15+ min of wind-down and shorter logged evenings."
-                : `After 15+ min of wind-down, next-day logged sleep averaged ${Math.abs(insight.differenceMinutes)} min ${insight.differenceMinutes > 0 ? "longer" : "shorter"} than after shorter logged evenings.`}
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">Selected {dates.length} sleep days · {insight.longerCount} longer / {insight.shorterCount} shorter evening pairs. Association, not causation; duration is not sleep quality. Confidence describes sample coverage, not statistical significance. Simulated sync values are excluded.</p>
+            <p className="mt-3 text-base font-semibold leading-snug text-foreground">{windDownHeadline}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Based on {insight.longerCount} long wind-down nights vs. {insight.shorterCount} shorter nights ({trendNote}).</p>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">Simulated sync values excluded.</p>
           </>
         )}
       </div>
