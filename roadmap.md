@@ -24,3 +24,4 @@
 - [x] Add a three-preset water row and verify totals, percentage, animation and the daily cap.
 - [x] Audit dashboard chart text contrast, add explicit axis/data units, and verify mobile readability.
 - [x] Add isolated Live User / Populated Demo switching with seven-day logs and unlocked paired-night insights; verify live data restoration.
+- [x] Rewrite the wind-down insight as a bold plain-language headline with one friendly supporting line; drop statistical jargon and verify both card states.
