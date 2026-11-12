@@ -26,6 +26,7 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
+/** Controlled preset selector; onboarding owns the chosen goal and this helper supplies selection styling and click audio. */
 function GoalPill({ active, onClick, children, tone, label }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep"; label?: string }) {
   return (
     <Button variant="plain" type="button" aria-pressed={active} aria-label={label} onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -60,6 +61,7 @@ function Onboarding() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pb-10 pt-12">
+      {/* === SECTION: Setup Progress & Back Navigation === */}
       <header className="flex gap-4" aria-label="Setup progress">
         {[1, 2].map((i) => (
           <div key={i} className="flex-1">
@@ -76,6 +78,7 @@ function Onboarding() {
         ))}
       </header>
 
+      {/* === SECTION: Step 1 Profile / Step 2 Baselines === */}
       {step === 1 ? (
         <section className="mt-16 flex-1">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Personalize</p>
@@ -95,6 +98,7 @@ function Onboarding() {
         <section className="mt-16 flex-1">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Baselines</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl leading-snug">Set your <span className="text-water">daily goals</span></h1>
+          {/* === SECTION: Water Goal Presets & Custom Input === */}
           <div className="mt-10 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Droplet className="text-water" size={18} /> Water goal</div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -108,6 +112,7 @@ function Onboarding() {
                 onApply={(v) => setWaterGoalMl(clampWaterGoal(v))} />
             )}
           </div>
+          {/* === SECTION: Sleep Goal Presets & Custom Input === */}
           <div className="mt-4 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Moon className="text-sleep" size={18} /> Sleep goal</div>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -124,6 +129,7 @@ function Onboarding() {
         </section>
       )}
 
+      {/* === SECTION: Step Advance & Setup Completion === */}
       <footer className="mt-10 flex items-center justify-between gap-4 pt-2">
         <span className="text-xs text-muted-foreground">You can change this later</span>
         {step === 1 ? (

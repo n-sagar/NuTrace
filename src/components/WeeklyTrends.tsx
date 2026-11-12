@@ -68,7 +68,8 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
   return (
     <section aria-labelledby="weekly-heading" className="min-w-0 rounded-2xl border border-border bg-card p-5">
       <p className="sr-only" role="status">{isAllMetrics ? `All metrics across ${dates.length} days. Water in liters, sleep in hours, wind-down in minutes. Lines scaled to each metric’s range peak.` : srSummary}</p>
-      {/* Screen-reader-only data table: the same seven days as the chart, line by line. */}
+      {/* === SECTION: Accessible Selected-Range Data Table === */}
+      {/* Mirrors the selected chart dates and real units, including missing logs and wind-down feelings. */}
       <div className="sr-only"><table className="sr-only">
         <caption>{metric} log for the past {dates.length} days{windDown || isAllMetrics ? "" : `, daily goal ${goal}${unit}`}</caption>
         <thead>
@@ -85,6 +86,7 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
           ))}
         </tbody>
       </table></div>
+      {/* === SECTION: Date Range Controls === */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="weekly-heading" className="flex items-center gap-2 font-medium"><TrendingUp size={16} className="text-muted-foreground" />Weekly Trends</h2>
@@ -101,6 +103,7 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
       </div>}
       {selectedRange !== "7" && <p className="mt-2 text-xs text-muted-foreground">14-day retained history · missing logs stay empty.</p>}
       {dates.length === 0 && <p role="alert" className="mt-2 text-xs text-destructive">Choose an ordered range within the past 14 days.</p>}
+      {/* === SECTION: Metric Filters & Summary === */}
       <Tabs value={selectedMetric} onValueChange={(value) => { if (value === "all" || value === "water" || value === "sleep" || value === "windDown") { playClick(); setSelectedMetric(value); setActiveDayIndex(null); } }} className="mt-5">
         <TabsList aria-label="Weekly metric" className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
           <TabsTrigger value="all" className="min-h-11 whitespace-normal px-1 text-xs">All Metrics</TabsTrigger>
@@ -132,6 +135,7 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
                 : "Tap, hover or focus a bar to see a day’s breakdown."}
             </p>}
             {isAllMetrics && <p className="text-xs text-muted-foreground">Relative to each metric’s range peak (%) · actual values in daily details.</p>}
+            {/* === SECTION: Interactive Chart & Contained Tooltip === */}
             <div
               tabIndex={0}
               role="group"
@@ -183,6 +187,7 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
               </div>
             )}
             </div>
+            {/* === SECTION: Metric & Goal Legends === */}
             {isAllMetrics && <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-xs font-medium text-muted-foreground">{[["Water (L)", "var(--water)"], ["Sleep (h)", "var(--sleep)"], ["Wind-down (min)", "var(--energy)"]].map(([label, fill]) => <span key={label} className="flex items-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={fill} /></svg>{label}</span>)}</div>}
             {!isAllMetrics && !windDown && <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs font-medium text-muted-foreground">
               <span className="flex items-center gap-1.5"><svg aria-hidden="true" data-legend="goal-met" viewBox="0 0 8 8" className="size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={color} /></svg>Goal met<svg aria-hidden="true" data-legend="below-goal" viewBox="0 0 8 8" className="ml-2 size-2 shrink-0"><circle cx="4" cy="4" r="4" fill={mutedColor} /></svg>Below goal</span>
@@ -191,6 +196,8 @@ export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailySt
           </motion.div>
         </TabsContent>
       </Tabs>
+      {/* === SECTION: Wind-Down Paired Insights === */}
+      {/* Both eligibility rings and the unlocked comparison derive from the same selected-range next-day pairs; this region owns no separate log state. */}
       <div className="mt-4 border-t border-border pt-4" aria-labelledby="trend-insight-heading">
         <h3 id="trend-insight-heading" className="flex items-center gap-2 text-sm font-medium"><Moon size={14} className="text-sleep" />Wind-down & sleep</h3>
         {insight.differenceMinutes === null ? (

@@ -159,17 +159,20 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-md space-y-4 px-4 py-8">
+      {/* === SECTION: App Header & Account Trigger === */}
       <div className="flex items-center justify-between">
         <h1 className="font-mono text-xl">NuTrace</h1>
         <Button variant="plain" id="profile-trigger" aria-label="Open account profile" aria-haspopup="dialog" aria-expanded={profileOpen} onClick={() => setProfileOpen(true)} className="min-h-11 min-w-11 rounded-full text-2xl transition hover:scale-110">{activePrefs.avatar}</Button>
       </div>
+      {/* === SECTION: Live User & Demo Controls === */}
       <div role="group" aria-label="Dashboard data mode" className="grid grid-cols-2 gap-1 rounded-full border border-border bg-muted/40 p-1">
         {([false, true] as const).map((populated) => <Button key={String(populated)} variant="plain" aria-pressed={Boolean(demoData) === populated} onClick={() => switchMode(populated)} className={cn("min-h-11 rounded-full px-3 text-xs font-medium transition", Boolean(demoData) === populated ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
           {populated ? "Populated Demo" : "Live User"}
         </Button>)}
       </div>
-      {demoData && <activePrefs role="status" className="text-xs text-muted-foreground">Sample habit data · changes here won’t affect your live logs.</activePrefs>}
-      <activePrefs className="text-sm text-muted-foreground">Hey {activePrefs.name}, hope you're doing well</activePrefs>
+      {demoData && <p role="status" className="text-xs text-muted-foreground">Sample habit data · changes here won’t affect your live logs.</p>}
+      {/* === SECTION: Greeting, Circadian Location & Daily Reset === */}
+      <p className="text-sm text-muted-foreground">Hey {activePrefs.name}, hope you're doing well</p>
       <CircadianPill />
 
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
@@ -177,12 +180,14 @@ function Dashboard() {
         Next reset in <span className="font-mono text-foreground">{resetCountdown}</span> at midnight
       </div>
 
+      {/* === SECTION: Top Goal Summary === */}
       <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-card p-5">
         <div><div className="flex items-center gap-1 text-sm text-muted-foreground"><Droplet size={14} className="text-water" />Water goal</div><div className="text-xl font-semibold">{activePrefs.waterGoal / 1000}L</div></div>
         <div><div className="flex items-center gap-1 text-sm text-muted-foreground"><Moon size={14} className="text-sleep" />Sleep goal</div><div className="text-xl font-semibold">{activePrefs.sleepGoal}h</div></div>
       </div>
 
-      {/* Water tracker */}
+      {/* === SECTION: Habit Tracking — Water Card === */}
+      {/* Logged milliliters and the active water goal drive the ring; all controls delegate to the shared page update path. */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h2 className="text-muted-foreground">Water</h2>
@@ -208,7 +213,8 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Sleep tracker */}
+      {/* === SECTION: Habit Tracking — Sleep Card === */}
+      {/* Manual duration/feeling and simulated sync share daily state; progress always uses the active sleep goal. */}
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-muted-foreground"><Moon size={16} className="text-sleep" />Sleep</h2>
@@ -261,7 +267,7 @@ function Dashboard() {
         ) : (
           <div className="mt-5 space-y-4">
             <div>
-              <activePrefs className="text-xs text-muted-foreground">How long did you sleep?</activePrefs>
+              <p className="text-xs text-muted-foreground">How long did you sleep?</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {QUICK_HOURS.map((h) => (
                   <Button variant="plain" key={h} aria-label={`Log ${h} hours of sleep`} aria-pressed={activeDaily.sleepHours === h} onClick={() => updateDailyLog({ sleepHours: h })}
@@ -273,7 +279,7 @@ function Dashboard() {
               </div>
             </div>
             <div>
-              <activePrefs className="text-xs text-muted-foreground">How do you feel?</activePrefs>
+              <p className="text-xs text-muted-foreground">How do you feel?</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {QUALITIES.map((q) => (
                   <Button variant="plain" key={q.key} aria-label={q.label} aria-pressed={activeDaily.sleepQuality === q.key} onClick={() => updateDailyLog({ sleepQuality: q.key })}
@@ -287,11 +293,14 @@ function Dashboard() {
           </div>
         )}
       </div>
+      {/* === SECTION: Evening Logging Trigger === */}
       <Button id="wind-down-trigger" variant="plain" aria-haspopup="dialog" aria-expanded={windDownOpen} onClick={() => { playClick(); setWindDownOpen(true); }} className="flex h-auto min-h-14 w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-4 text-left">
         <span className="flex items-center gap-2"><Moon size={18} className="text-sleep" />Evening wind-down</span><span className="text-xs text-muted-foreground">{activeDaily.windDownMinutes != null ? `${activeDaily.windDownMinutes} min · ${activeDaily.windDownState}` : "Log tonight"}</span>
       </Button>
+      {/* === SECTION: Momentum, Analytics & Trends === */}
        <MomentumShield rows={demoData ? [...demoData.history.filter((row) => row.date !== activeDaily.date), dailySnapshot(activeDaily)].map((row) => ({ date: row.date, met: row.waterMl >= activePrefs.waterGoal && (row.sleepHours ?? 0) >= activePrefs.sleepGoal })) : undefined} />
        <WeeklyTrends key={demoData ? "demo" : "live"} daily={activeDaily} prefs={activePrefs} historyOverride={demoData?.history} />
+      {/* === SECTION: Profile & Wind-Down Dialogs === */}
       {windDownOpen && <WindDownDrawer daily={activeDaily} onSave={(patch) => updateDailyLog(patch, playClick)} onClose={() => setWindDownOpen(false)} />}
       {profileOpen && (
         <ProfileModal prefs={activePrefs} onSave={saveGoals} onLogout={logout} onClose={() => setProfileOpen(false)} />
