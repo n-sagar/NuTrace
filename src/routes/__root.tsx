@@ -1,3 +1,8 @@
+/**
+ * Shared application shell for all NuTrace routes. Provides the query client,
+ * document metadata/styles, a single main landmark and toast host around Outlet.
+ * Also owns not-found/error recovery; feature-specific habit state lives in pages.
+ */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,

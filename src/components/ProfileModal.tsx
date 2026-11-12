@@ -1,3 +1,9 @@
+/**
+ * Dashboard account dialog displaying the active profile and editable goals.
+ * Owns only custom-input visibility; preference values remain parent-controlled
+ * and edits are sent immediately through onSave for live/demo handling. Radix
+ * contains focus and dismissal restores the dashboard avatar trigger.
+ */
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { LogOut, Droplet, Moon } from "lucide-react";

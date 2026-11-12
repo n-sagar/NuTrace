@@ -1,3 +1,9 @@
+/**
+ * Dashboard sunrise/sunset widget with device-local GPS or manual timezone
+ * preferences. Owns the clock, location form and request/status state, refreshes
+ * saved choices across tabs and calculates events only after hydration. GPS is
+ * explicitly requested; manual locations use labeled timezone-based estimates.
+ */
 import { useEffect, useState } from "react";
 import { LocateFixed, Sunrise, Sunset } from "lucide-react";
 import { Button } from "@/components/ui/button";

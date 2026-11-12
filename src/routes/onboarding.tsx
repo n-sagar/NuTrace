@@ -1,3 +1,8 @@
+/**
+ * Two-step setup route: collect a name/avatar, then water and sleep baselines.
+ * Holds unsaved profile and goal choices locally, manages step-heading focus,
+ * and saves shared preferences before navigating to the dashboard.
+ */
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -21,7 +26,7 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-function Pill({ active, onClick, children, tone, label }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep"; label?: string }) {
+function GoalPill({ active, onClick, children, tone, label }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep"; label?: string }) {
   return (
     <Button variant="plain" type="button" aria-pressed={active} aria-label={label} onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       active ? (tone === "water" ? "border-water bg-water/15 text-water" : "border-sleep bg-sleep/15 text-sleep") : "border-input bg-card text-muted-foreground hover:text-foreground")}>
@@ -31,26 +36,26 @@ function Pill({ active, onClick, children, tone, label }: { active: boolean; onC
 }
 
 function Onboarding() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstStepRender = useRef(true);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState<string>(AVATARS[0] ?? "🦊");
-  const [water, setWater] = useState(2000);
-  const [sleep, setSleep] = useState(8);
-  const [waterCustom, setWaterCustom] = useState(false);
-  const [sleepCustom, setSleepCustom] = useState(false);
+  const [waterGoalMl, setWaterGoalMl] = useState(2000);
+  const [sleepGoalHours, setSleepGoalHours] = useState(8);
+  const [isCustomWaterOpen, setCustomWaterOpen] = useState(false);
+  const [isCustomSleepOpen, setCustomSleepOpen] = useState(false);
 
   useEffect(() => {
     if (firstStepRender.current) { firstStepRender.current = false; return; }
     headingRef.current?.focus();
   }, [step]);
 
-  const complete = () => {
+  const completeSetup = () => {
     playClick();
-    savePrefs({ name: name.trim(), avatar, waterGoal: water, sleepGoal: sleep, email: DEFAULT_EMAIL });
-    nav({ to: "/dashboard" });
+    savePrefs({ name: name.trim(), avatar, waterGoal: waterGoalMl, sleepGoal: sleepGoalHours, email: DEFAULT_EMAIL });
+    navigate({ to: "/dashboard" });
   };
 
   return (
@@ -93,27 +98,27 @@ function Onboarding() {
           <div className="mt-10 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Droplet className="text-water" size={18} /> Water goal</div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {WATER_GOALS.map((w) => <Pill key={w} tone="water" active={water === w} onClick={() => { setWaterCustom(false); setWater(w); }}>{w}ml</Pill>)}
-              <Pill tone="water" label="Custom water goal" active={waterCustom || !(WATER_GOALS as number[]).includes(water)} onClick={() => setWaterCustom((v) => !v)}>
-                {(WATER_GOALS as number[]).includes(water) ? "Custom" : `Custom: ${water}ml`}
-              </Pill>
+              {WATER_GOALS.map((w) => <GoalPill key={w} tone="water" active={waterGoalMl === w} onClick={() => { setCustomWaterOpen(false); setWaterGoalMl(w); }}>{w}ml</GoalPill>)}
+              <GoalPill tone="water" label="Custom water goal" active={isCustomWaterOpen || !(WATER_GOALS as number[]).includes(waterGoalMl)} onClick={() => setCustomWaterOpen((v) => !v)}>
+                {(WATER_GOALS as number[]).includes(waterGoalMl) ? "Custom" : `Custom: ${waterGoalMl}ml`}
+              </GoalPill>
             </div>
-            {waterCustom && (
-              <CustomGoalRow label="Water goal" unit="ml" value={water} min={MIN_WATER_GOAL} max={MAX_WATER_GOAL} step={50}
-                onApply={(v) => setWater(clampWaterGoal(v))} />
+            {isCustomWaterOpen && (
+              <CustomGoalRow label="Water goal" unit="ml" value={waterGoalMl} min={MIN_WATER_GOAL} max={MAX_WATER_GOAL} step={50}
+                onApply={(v) => setWaterGoalMl(clampWaterGoal(v))} />
             )}
           </div>
           <div className="mt-4 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-2"><Moon className="text-sleep" size={18} /> Sleep goal</div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {SLEEP_GOALS.map((s) => <Pill key={s} tone="sleep" active={sleep === s} onClick={() => { setSleepCustom(false); setSleep(s); }}>{s}h</Pill>)}
-              <Pill tone="sleep" label="Custom sleep goal" active={sleepCustom || !(SLEEP_GOALS as number[]).includes(sleep)} onClick={() => setSleepCustom((v) => !v)}>
-                {(SLEEP_GOALS as number[]).includes(sleep) ? "Custom" : `Custom: ${sleep}h`}
-              </Pill>
+              {SLEEP_GOALS.map((s) => <GoalPill key={s} tone="sleep" active={sleepGoalHours === s} onClick={() => { setCustomSleepOpen(false); setSleepGoalHours(s); }}>{s}h</GoalPill>)}
+              <GoalPill tone="sleep" label="Custom sleep goal" active={isCustomSleepOpen || !(SLEEP_GOALS as number[]).includes(sleepGoalHours)} onClick={() => setCustomSleepOpen((v) => !v)}>
+                {(SLEEP_GOALS as number[]).includes(sleepGoalHours) ? "Custom" : `Custom: ${sleepGoalHours}h`}
+              </GoalPill>
             </div>
-            {sleepCustom && (
-              <CustomGoalRow label="Sleep goal" unit="h" value={sleep} min={MIN_SLEEP_GOAL} max={MAX_SLEEP_GOAL} step={0.5}
-                onApply={(v) => setSleep(clampSleepGoal(v))} />
+            {isCustomSleepOpen && (
+              <CustomGoalRow label="Sleep goal" unit="h" value={sleepGoalHours} min={MIN_SLEEP_GOAL} max={MAX_SLEEP_GOAL} step={0.5}
+                onApply={(v) => setSleepGoalHours(clampSleepGoal(v))} />
             )}
           </div>
         </section>
@@ -124,7 +129,7 @@ function Onboarding() {
         {step === 1 ? (
           <Button variant="plain" disabled={!name.trim()} onClick={() => { playClick(); setStep(2); }} className="btn-gradient h-auto min-h-11 rounded-2xl px-10 py-3 text-lg font-semibold disabled:opacity-40">Next</Button>
         ) : (
-          <Button variant="plain" onClick={complete} className="btn-gradient h-auto min-h-11 rounded-2xl px-6 py-3 text-lg font-semibold">Complete Setup</Button>
+          <Button variant="plain" onClick={completeSetup} className="btn-gradient h-auto min-h-11 rounded-2xl px-6 py-3 text-lg font-semibold">Complete Setup</Button>
         )}
       </footer>
     </div>

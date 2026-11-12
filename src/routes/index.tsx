@@ -1,3 +1,8 @@
+/**
+ * Welcome entry route for NuTrace. Renders the orbital brand animation and links
+ * into profile onboarding or the dashboard; owns only reduced-motion presentation
+ * and does not read or modify saved habit data.
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Droplet, Moon, Sparkles, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
