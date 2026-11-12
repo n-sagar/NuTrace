@@ -1,7 +1,7 @@
 import { Award, Shield, ShieldCheck } from "lucide-react";
 import { loadMomentum, summarizeMomentum } from "@/lib/momentum";
 
-export function MomentumShield({ rows }: { rows?: Parameters<typeof summarizeMomentum>[0] }) {
+export function MomentumShield({ rows }: { rows?: Parameters<typeof summarizeMomentum>[0] | undefined }) {
   const momentum = summarizeMomentum(rows ?? loadMomentum());
   const Icon = momentum.ready ? ShieldCheck : Shield;
   return <section aria-labelledby="momentum-heading" className="border-y border-border py-4">

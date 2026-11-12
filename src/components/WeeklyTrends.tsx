@@ -14,7 +14,7 @@ import { PairedNightProgress } from "@/components/PairedNightProgress";
 const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" });
 const shortDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
-export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailyState; prefs: Prefs; historyOverride?: DaySnapshot[] }) {
+export function WeeklyTrends({ daily, prefs, historyOverride }: { daily: DailyState; prefs: Prefs; historyOverride?: DaySnapshot[] | undefined }) {
   const [mode, setMode] = useState<TrendMode | "all">("water");
   const [range, setRange] = useState<TrendRange>("7");
   const [start, setStart] = useState("");
