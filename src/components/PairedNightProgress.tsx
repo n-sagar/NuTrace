@@ -1,3 +1,9 @@
+/**
+ * Shared paired-night progress display for both wind-down insight states.
+ * Receives longer/shorter evening counts from analytics, caps each displayed
+ * counter at two and animates accessible SVG rings with reduced-motion support.
+ * Presentation only: pairing and eligibility remain in the shared history helper.
+ */
 import { motion, useReducedMotion } from "framer-motion";
 
 export function PairedNightProgress({ longerCount, shorterCount }: { longerCount: number; shorterCount: number }) {

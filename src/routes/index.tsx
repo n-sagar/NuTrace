@@ -1,3 +1,8 @@
+/**
+ * Welcome entry route for NuTrace. Renders the orbital brand animation and links
+ * into profile onboarding or the dashboard; owns only reduced-motion presentation
+ * and does not read or modify saved habit data.
+ */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Droplet, Moon, Sparkles, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -27,6 +32,7 @@ function Landing() {
   return (
     <div className="welcome-background flex min-h-svh flex-col items-center justify-center px-6 py-12">
       <div className="flex w-full max-w-sm flex-col items-center">
+        {/* === SECTION: Orbital Brand Presentation === */}
         <div className="relative grid aspect-square w-full max-w-[340px] place-items-center" aria-label="NuTrace hydration and sleep solar system">
           <div className="absolute inset-5 rounded-full border border-border/70" />
           <div className="absolute inset-[72px] rounded-full border border-border/70" />
@@ -54,6 +60,7 @@ function Landing() {
             <h1 className="font-display text-2xl">NuTrace</h1>
           </div>
         </div>
+        {/* === SECTION: Welcome Copy & App Entry Links === */}
         <h2 className="mt-8 max-w-xs text-center text-xl font-medium leading-relaxed">Track your daily hydration and sleep rhythm effortlessly.</h2>
         <motion.div className="mt-8 w-full" whileHover={{ scale: reducedMotion ? 1 : 1.025 }} whileTap={{ scale: reducedMotion ? 1 : 0.98 }} transition={{ duration: 0.2 }}>
           <Button asChild onClick={() => playClick()} className="btn-gradient h-14 w-full rounded-2xl text-base font-semibold">

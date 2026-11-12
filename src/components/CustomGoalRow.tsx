@@ -1,3 +1,8 @@
+/**
+ * Shared custom numeric goal editor used in onboarding and account settings.
+ * Holds draft input text and resynchronizes when the parent value changes. Set
+ * or Enter forwards the numeric draft; callers own clamping and persistence.
+ */
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { playClick } from "@/lib/daily";

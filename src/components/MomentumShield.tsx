@@ -1,3 +1,8 @@
+/**
+ * Dashboard momentum and milestone presentation. Derives shield charge and
+ * protected-day status from the durable momentum ledger or supplied demo rows.
+ * Owns no logging state and never fabricates goal attainment or persists data.
+ */
 import { Award, Shield, ShieldCheck } from "lucide-react";
 import { loadMomentum, summarizeMomentum } from "@/lib/momentum";
 

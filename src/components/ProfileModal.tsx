@@ -1,3 +1,9 @@
+/**
+ * Dashboard account dialog displaying the active profile and editable goals.
+ * Owns only custom-input visibility; preference values remain parent-controlled
+ * and edits are sent immediately through onSave for live/demo handling. Radix
+ * contains focus and dismissal restores the dashboard avatar trigger.
+ */
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { LogOut, Droplet, Moon } from "lucide-react";
@@ -14,6 +20,7 @@ type Props = {
   onClose: () => void;
 };
 
+/** Controlled goal selector; selection and persistence remain with the dialog's parent callbacks. */
 function GoalPill({ active, onClick, children, tone, label }: { active: boolean; onClick: () => void; children: React.ReactNode; tone: "water" | "sleep"; label?: string }) {
   return (
     <Button variant="plain" type="button" aria-pressed={active} aria-label={label} onClick={() => { playClick(); onClick(); }} className={cn("font-mono rounded-full border px-4 py-2 text-sm transition min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",

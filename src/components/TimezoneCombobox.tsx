@@ -1,3 +1,9 @@
+/**
+ * Searchable timezone selector within the circadian location controls. Owns
+ * popover visibility and available options, expanding curated aliases after
+ * hydration. The selected timezone is parent-controlled; onChange returns its
+ * identifier without persisting location or calculating solar events.
+ */
 import { useEffect, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
