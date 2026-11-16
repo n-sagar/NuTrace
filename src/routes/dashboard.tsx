@@ -150,8 +150,9 @@ function Dashboard() {
   const waterProgressRatio = Math.min(activeDaily.waterMl / activePrefs.waterGoal, 1);
   const waterRingCircumference = 2 * Math.PI * 80;
   const isSleepSynced = activeDaily.syncOn;
+  const sleepGoalHours = activePrefs.sleepGoal;
   const sleepHours = isSleepSynced ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : activeDaily.sleepHours ?? 0;
-  const sleepProgress = Math.min(100, sleepHours / activePrefs.sleepGoal * 100);
+  const sleepProgress = Math.min(100, sleepHours / sleepGoalHours * 100);
   const sleepDisplay = isSleepSynced
     ? `${SYNCED_SLEEP.hours}h ${SYNCED_SLEEP.minutes}m`
     : activeDaily.sleepHours != null
@@ -171,7 +172,25 @@ function Dashboard() {
           {populated ? "Populated Demo" : "Live User"}
         </Button>)}
       </div>
-      {demoData && <p role="status" className="text-xs text-muted-foreground">Sample habit data · changes here won’t affect your live logs.</p>}
+      {demoData ? <p role="status" className="text-xs text-muted-foreground">Sample habit data · changes here won’t affect your live logs.</p> : (
+        <p className="text-xs text-muted-foreground">Tracking live in browser ·{" "}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="plain" onClick={playClick} className="h-auto min-h-11 px-1 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">Reset logs</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md rounded-3xl bg-card">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset live logs?</AlertDialogTitle>
+                <AlertDialogDescription>This clears your water, sleep, wind-down, weekly history, and momentum logs. Your profile and goals stay saved.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { playClick(); setLiveDaily(resetLiveLogs()); toast("Live logs reset."); }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Reset logs</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </p>
+      )}
       {/* === SECTION: Greeting, Circadian Location & Daily Reset === */}
       <p className="text-sm text-muted-foreground">Hey {activePrefs.name}, hope you're doing well</p>
       <CircadianPill />
@@ -184,7 +203,7 @@ function Dashboard() {
       {/* === SECTION: Top Goal Summary === */}
       <div className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-card p-5">
         <div><div className="flex items-center gap-1 text-sm text-muted-foreground"><Droplet size={14} className="text-water" />Water goal</div><div className="text-xl font-semibold">{activePrefs.waterGoal / 1000}L</div></div>
-        <div><div className="flex items-center gap-1 text-sm text-muted-foreground"><Moon size={14} className="text-sleep" />Sleep goal</div><div className="text-xl font-semibold">{activePrefs.sleepGoal}h</div></div>
+        <div><div className="flex items-center gap-1 text-sm text-muted-foreground"><Moon size={14} className="text-sleep" />Sleep goal</div><div className="text-xl font-semibold">{sleepGoalHours}h</div></div>
       </div>
 
       {/* === SECTION: Habit Tracking — Water Card === */}
@@ -244,7 +263,7 @@ function Dashboard() {
         <div className="mt-4 space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{Math.round(sleepProgress)}% of goal</span>
-            <span>{activePrefs.sleepGoal}h goal</span>
+            <span>{sleepGoalHours}h goal</span>
           </div>
           <Progress aria-label="Sleep goal progress" value={sleepProgress} className="bg-sleep/15 [&>div]:bg-sleep" />
         </div>
