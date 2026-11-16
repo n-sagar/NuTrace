@@ -176,7 +176,7 @@ function Dashboard() {
         <p className="text-xs text-muted-foreground">Tracking live in browser ·{" "}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="plain" onClick={playClick} className="h-auto min-h-11 px-1 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">Reset logs</Button>
+              <Button variant="plain" onClick={playClick} className="relative h-auto min-h-0 px-1 py-0 align-middle text-xs text-muted-foreground underline underline-offset-4 after:absolute after:-inset-y-3 after:content-[''] hover:text-foreground">Reset logs</Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md rounded-3xl bg-card">
               <AlertDialogHeader>
