@@ -14,6 +14,7 @@ export function MomentumShield({ rows }: { rows?: Parameters<typeof summarizeMom
       <div className="min-w-0 flex-1"><h2 id="momentum-heading" className="text-sm font-medium">7-Day Momentum Shield</h2>
         <p className="mt-1 text-xs text-muted-foreground">{momentum.ready ? "Shield ready · one missed day protected" : `${momentum.charge} / 7 goal days toward your shield`}</p>
         <p className="mt-1 text-xs text-muted-foreground">{momentum.streak} momentum days · Water + sleep goals</p>
+        <p className="mt-1 text-xs text-muted-foreground">Hit both Water and Sleep goals on the same day to earn a momentum day.</p>
         {momentum.lastProtected && <p className="mt-1 text-xs text-trend-positive">Missed day protected · {momentum.lastProtected}</p>}
       </div>
     </div>
