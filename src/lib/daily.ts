@@ -55,6 +55,16 @@ export function saveDaily(d: DailyState) {
   recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
 }
 
+/** Clear only live habit logs; profile goals and isolated demo fixtures remain intact. */
+export function resetLiveLogs(): DailyState {
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(MOMENTUM_KEY);
+  } catch { /* Local persistence may be unavailable; the visible log still resets. */ }
+  return fresh();
+}
+
 export function dailySnapshot(d: DailyState): DaySnapshot {
   return { date: d.date, waterMl: d.waterMl, sleepHours: d.syncOn ? SYNCED_SLEEP.hours + SYNCED_SLEEP.minutes / 60 : d.sleepHours, ...(d.syncOn ? { sleepSource: "demo-sync" as const } : {}), ...(d.windDownMinutes != null ? { windDownMinutes: d.windDownMinutes, windDownState: d.windDownState ?? null } : {}) };
 }
