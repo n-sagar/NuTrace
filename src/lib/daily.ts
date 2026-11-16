@@ -1,5 +1,5 @@
-import { localDateKey, recordDay, type DaySnapshot } from "@/lib/weekly";
-import { loadMomentum, recordMomentum } from "@/lib/momentum";
+import { HISTORY_KEY, localDateKey, recordDay, type DaySnapshot } from "@/lib/weekly";
+import { loadMomentum, MOMENTUM_KEY, recordMomentum } from "@/lib/momentum";
 import { loadPrefs, defaultPrefs } from "@/lib/prefs";
 
 export type SleepQuality = "rested" | "okay" | "tired";
@@ -53,6 +53,16 @@ export function saveDaily(d: DailyState) {
   localStorage.setItem(KEY, JSON.stringify(d));
   recordDay(dailySnapshot(d));
   recordMomentum(dailySnapshot(d), loadPrefs() ?? defaultPrefs());
+}
+
+/** Clear only live habit logs; profile goals and isolated demo fixtures remain intact. */
+export function resetLiveLogs(): DailyState {
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(MOMENTUM_KEY);
+  } catch { /* Local persistence may be unavailable; the visible log still resets. */ }
+  return fresh();
 }
 
 export function dailySnapshot(d: DailyState): DaySnapshot {

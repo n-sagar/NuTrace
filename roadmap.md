@@ -26,3 +26,4 @@
 - [x] Add isolated Live User / Populated Demo switching with seven-day logs and unlocked paired-night insights; verify live data restoration.
 - [x] Rewrite the wind-down insight as a bold plain-language headline with one friendly supporting line; drop statistical jargon and verify both card states.
 - [x] Document pages and feature ownership, mark major JSX sections, audit local naming and verify unchanged behavior with 90 tests and the saved-data dashboard flow.
+- [x] Add confirmed live-log reset, unified sleep targets, and momentum-day guidance; verify demo isolation.
