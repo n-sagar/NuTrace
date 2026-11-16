@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Route } from "@/routes/dashboard";
 import { createDemoData } from "@/lib/demo";
 import { dailySnapshot, loadDaily, saveDaily } from "@/lib/daily";
-import { savePrefs, defaultPrefs } from "@/lib/prefs";
+import { loadPrefs, savePrefs, defaultPrefs } from "@/lib/prefs";
 import { summarizeWeek, windDownInsight } from "@/lib/weekly";
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
@@ -56,5 +56,46 @@ describe("Isolated populated dashboard demo", () => {
     expect(screen.getByText("0.50L of 2.65L goal")).toBeInTheDocument();
     expect(loadDaily().sleepHours).toBe(7.5);
     expect({ ...localStorage }).toEqual(before);
+  });
+
+  it("uses an edited sleep goal in both the top summary and sleep tracker", async () => {
+    savePrefs({ ...defaultPrefs(), sleepGoal: 8.5 });
+    const Component = Route.options.component;
+    if (!Component) throw new Error("Dashboard component missing");
+    render(<Component />);
+    fireEvent.click(await screen.findByRole("button", { name: "Open account profile" }));
+    fireEvent.click(await screen.findByRole("button", { name: "9h" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close profile" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getAllByText("9h")).toHaveLength(2);
+    expect(screen.getByText("9h goal")).toBeInTheDocument();
+    expect(loadPrefs()?.sleepGoal).toBe(9);
+  });
+
+  it("requires confirmation before clearing live logs and preserves goals and demo data", async () => {
+    const prefs = { ...defaultPrefs(), waterGoal: 2650, sleepGoal: 8.5 };
+    savePrefs(prefs);
+    saveDaily({ ...loadDaily(), waterMl: 1750, sleepHours: 8.5, windDownMinutes: 30, windDownState: "calm" });
+    const Component = Route.options.component;
+    if (!Component) throw new Error("Dashboard component missing");
+    render(<Component />);
+    fireEvent.click(await screen.findByRole("button", { name: "Reset logs" }));
+    expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
+    expect(screen.getByText("1.75L of 2.65L goal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset logs" }));
+    const confirmation = await screen.findByRole("alertdialog");
+    fireEvent.click(within(confirmation).getByRole("button", { name: "Reset logs" }));
+    await waitFor(() => expect(screen.getByText("0.00L of 2.65L goal")).toBeInTheDocument());
+    expect(screen.getByText("no sleep logged yet")).toBeInTheDocument();
+    expect(localStorage.getItem("nutrace.daily")).toBeNull();
+    expect(localStorage.getItem("nutrace.history")).toBeNull();
+    expect(localStorage.getItem("nutrace.momentum")).toBeNull();
+    expect(loadPrefs()).toEqual(prefs);
+
+    fireEvent.click(screen.getByRole("button", { name: "Populated Demo" }));
+    expect(screen.getByText("1.50L of 2L goal")).toBeInTheDocument();
   });
 });
